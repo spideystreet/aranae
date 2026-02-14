@@ -65,8 +65,7 @@ def fetch_details(url: str) -> Dict:
                         details['title'] = data.get('title')
                     
                     if data.get('datePosted'):
-                        # We can use this to override list date if needed, but list date is fine.
-                        pass
+                        details['start_date'] = data.get('datePosted') # Use as fallback if list view misses it
                     
                     break # Found the JobPosting
             except:
@@ -156,45 +155,41 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
     
     job_containers = []
     
-    # Selecting job cards strategy 5: Locate by H3 Title Link
-    # This avoids picking up skills as titles, and prevents double-scraping the same card.
-    job_links = soup.select('h3 a[href*="/job-mission/"]')
+    # Selecting job cards strategy 6: Unique Job Links
+    # We find all links to job missions and process them uniquely.
+    # We try to find the card container to extract list-level info like date/tags.
+    links = soup.select('a[href*="/job-mission/"]')
+    processed_urls = set()
     
     jobs = []
     
-    for i, link_tag in enumerate(job_links):
+    for i, link_tag in enumerate(links):
         try:
             href = link_tag.get('href', '')
-            full_url = f"https://www.free-work.com{href}"
+            if not href or href in processed_urls:
+                continue
+            processed_urls.add(href)
             
-            # This is a job title (from list view)
-            title = link_tag.get_text(strip=True)
+            full_url = f"https://www.free-work.com{href}"
             
             # Generate a unique ID for deduplication
             job_id = href.split('/')[-1] if href else f"unknown-{i}"
 
-            content_div = link_tag.find_parent('div')
-            header_tag = link_tag.find_parent('header')
-
-            if not content_div and not header_tag:
-                 continue
-
-            # Re-locate content_div for other details if strictly needed, or just search relative to current position
-            if not content_div:
-                 content_div = header_tag.parent if header_tag else link_tag.parent.parent
-
-            # Date exists in <time> tag in the list
-            date_tag = content_div.select_one('time')
+            # Try to find the closest card container (usually a div or a with bg-white)
+            card = link_tag.find_parent(class_=lambda x: x and 'bg-white' in x)
+            if not card:
+                 card = link_tag.parent.parent # fallback
+            
+            # Date exists in <time> tag in the card
+            date_tag = card.select_one('time') if card else None
             date_posted = date_tag.get_text(strip=True) if date_tag else None
             
             # --- Fetch Details from Detail Page ---
-            # This is where we get the rich info (Company, Salary, TJM, Duration, Location)
-            # We do this synchronously, so it might take time.
             details = fetch_details(full_url)
             
             # Merge logic
             # Prioritize detail page title if available
-            title = details.get('title') or title
+            title = details.get('title')
             company = details.get('company')
             location = details.get('location')
             income = details.get('income')
@@ -202,29 +197,22 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             experience_level = details.get('experience_level')
             description = details.get('description')
             
-            # Fallback for company/location if not found in detail (try list)
-            if not company and header_tag:
-                 # Try sibling of header in list view
-                 next_div = header_tag.find_next_sibling('div')
-                 if next_div:
-                      company_div = next_div.select_one('.text-base.font-medium.truncate.w-full')
-                      if company_div:
-                          company = company_div.get_text(strip=True)
+            # Use JSON-LD date as fallback if list view missed it
+            if not date_posted and details.get('start_date'):
+                 date_posted = details.get('start_date')
 
             # --- Tag Extraction & Classification ---
-            # Extract all potential tags from list view
-            # .tag usually contains contracts AND skills on this site
-            # .fw-text-highlight are usually skills
-            
+            # Extract tags from the card container
             raw_tags = set()
             
-            # Selector 1: Standard tags
-            for t in content_div.select('.tag'):
-                raw_tags.add(t.get_text(strip=True))
-                
-            # Selector 2: Highlighted skills
-            for t in content_div.select('[class*="bg-brand-"] .fw-text-highlight'):
-                raw_tags.add(t.get_text(strip=True))
+            if card:
+                # Selector 1: Standard tags
+                for t in card.select('.tag'):
+                    raw_tags.add(t.get_text(strip=True))
+                    
+                # Selector 2: Highlighted skills
+                for t in card.select('[class*="bg-brand-"] .fw-text-highlight'):
+                    raw_tags.add(t.get_text(strip=True))
                 
             contracts = []
             skills = []
