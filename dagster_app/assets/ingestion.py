@@ -22,8 +22,8 @@ def raw_freework_jobs() -> pd.DataFrame:
     df = pd.DataFrame(all_jobs)
     
     # Ensure columns exist even if empty
-    expected_cols = ["job_id", "title", "company", "date_posted", "contracts", "skills", 
-                     "duration", "experience_level", "income", "location", "description", "url", "source"]
+    expected_cols = ["job_id", "title", "company", "publication_date", "contracts", "skills", 
+                     "duration", "experience_level", "income", "location", "description", "start_date", "url", "source"]
     
     for col in expected_cols:
         if col not in df.columns:
