@@ -1,0 +1,19 @@
+
+version: 2
+
+models:
+  - name: stg_freework
+    description: "Staging model for Free-Work jobs"
+    columns:
+      - name: title
+        description: "Job title"
+      - name: description
+        description: "Job description"
+      - name: url
+        description: "Job URL"
+      - name: company
+        description: "Company name"
+      - name: location
+        description: "Job location"
+      - name: date
+        description: "Posting date"

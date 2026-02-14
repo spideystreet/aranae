@@ -1,0 +1,11 @@
+
+version: 2
+
+models:
+  - name: pivot_freework
+    description: "Pivot model for Free-Work jobs analysis"
+    columns:
+      - name: category
+        description: "Job category"
+      - name: job_count
+        description: "Number of jobs in this category"
