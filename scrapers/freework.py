@@ -67,9 +67,6 @@ def fetch_details(url: str) -> Dict:
                     break # Found the JobPosting
             except:
                 pass
-
-            except:
-                pass
         
         if not details['company']:
              # Small safety net: if JSON-LD entirely failed to parse or missing type
