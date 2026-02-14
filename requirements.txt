@@ -1,0 +1,10 @@
+
+dbt-core
+dbt-postgres
+dagster-postgres
+pandas
+requests
+beautifulsoup4
+python-dotenv
+mistralai
+crawl4ai
