@@ -1,0 +1,9 @@
+
+version: 2
+
+sources:
+  - name: dagster_raw
+    schema: main 
+    tables:
+      - name: raw_freework_jobs
+        description: "Raw job listings scraped from Free-Work"
