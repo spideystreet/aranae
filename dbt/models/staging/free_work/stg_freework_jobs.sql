@@ -23,6 +23,7 @@ select
     duration,
     experience_level,
     location,
+    start_date,
     source,
     scraped_at
 from deduplicated
