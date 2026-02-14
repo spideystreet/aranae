@@ -23,6 +23,7 @@ def fetch_details(url: str) -> Dict:
         'company': None,
         'description': None,
         'start_date': None,
+        'date_posted': None,
         'title': None
     }
     
@@ -65,7 +66,7 @@ def fetch_details(url: str) -> Dict:
                         details['title'] = data.get('title')
                     
                     if data.get('datePosted'):
-                        details['start_date'] = data.get('datePosted') # Use as fallback if list view misses it
+                        details['date_posted'] = data.get('datePosted')
                     
                     break # Found the JobPosting
             except:
@@ -188,7 +189,7 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             details = fetch_details(full_url)
             
             # Merge logic
-            # Prioritize detail page title if available
+            # Prioritize detail page title and dates
             title = details.get('title')
             company = details.get('company')
             location = details.get('location')
@@ -196,10 +197,10 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             duration = details.get('duration')
             experience_level = details.get('experience_level')
             description = details.get('description')
+            start_date = details.get('start_date')
             
-            # Use JSON-LD date as fallback if list view missed it
-            if not date_posted and details.get('start_date'):
-                 date_posted = details.get('start_date')
+            # Date Posted: JSON-LD priority, fallback to list view
+            date_posted = details.get('date_posted') or date_posted
 
             # --- Tag Extraction & Classification ---
             # Extract tags from the card container
@@ -241,6 +242,7 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
                 "income": income,
                 "location": location,
                 "description": description,
+                "start_date": start_date,
                 "url": full_url,
                 "source": "free-work"
             })
