@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synapse"
+version = "0.1.0"
+authors = [
+  { name="spideystreet", email="dhicham.pro@gmail.com" },
+]
+description = "Job scraping and analysis pipeline"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "dagster",
+    "dagster-webserver",
+    "dagster-dbt",
+    "dbt-core",
+    "dbt-postgres",
+    "pandas",
+    "requests",
+    "beautifulsoup4",
+    "python-dotenv",
+    "mistralai",
+    "psycopg2-binary",
+    "sqlalchemy"
+]
+
+[tool.setuptools]
+packages = ["scrapers", "dagster_app"]
