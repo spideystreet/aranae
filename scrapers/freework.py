@@ -22,7 +22,8 @@ def fetch_details(url: str) -> Dict:
         'experience_level': None, # New field
         'company': None,
         'description': None,
-        'start_date': None
+        'start_date': None,
+        'title': None
     }
     
     try:
@@ -59,6 +60,9 @@ def fetch_details(url: str) -> Dict:
                         # But scraper.py usually returns text.
                         # Let's use BS4 to strip HTML from it
                         details['description'] = BeautifulSoup(data['description'], 'html.parser').get_text(separator="\n", strip=True)
+                    
+                    if data.get('title'):
+                        details['title'] = data.get('title')
                     
                     if data.get('datePosted'):
                         # We can use this to override list date if needed, but list date is fine.
@@ -152,31 +156,19 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
     
     job_containers = []
     
-    # Selecting job cards strategy 4: Locate by Title Header
-    # We found that finding the container is brittle, but finding the title span is robust (35 found).
-    # We will extract data relative to the h3 > span structure.
-    
-    
-    title_spans = soup.find_all('span', class_='fw-text-highlight')
+    # Selecting job cards strategy 5: Locate by H3 Title Link
+    # This avoids picking up skills as titles, and prevents double-scraping the same card.
+    job_links = soup.select('h3 a[href*="/job-mission/"]')
     
     jobs = []
     
-    for i, span in enumerate(title_spans):
+    for i, link_tag in enumerate(job_links):
         try:
-            # Check if parent is a link to a job
-            link_tag = span.find_parent('a')
-            
-            # If no parent link, or link doesn't look like a job, skip
-            if not link_tag:
-                 continue
-            
             href = link_tag.get('href', '')
-            if '/job-mission/' not in href:
-                 continue
-
-            # This is a job title!
-            title = span.get_text(strip=True)
             full_url = f"https://www.free-work.com{href}"
+            
+            # This is a job title (from list view)
+            title = link_tag.get_text(strip=True)
             
             # Generate a unique ID for deduplication
             job_id = href.split('/')[-1] if href else f"unknown-{i}"
@@ -201,6 +193,8 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             details = fetch_details(full_url)
             
             # Merge logic
+            # Prioritize detail page title if available
+            title = details.get('title') or title
             company = details.get('company')
             location = details.get('location')
             income = details.get('income')
