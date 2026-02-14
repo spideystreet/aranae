@@ -14,7 +14,7 @@ select
     job_id,
     title,
     company,
-    date_posted,
+    publication_date,
     url,
     skills,
     contracts,

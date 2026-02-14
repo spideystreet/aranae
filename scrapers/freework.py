@@ -23,7 +23,7 @@ def fetch_details(url: str) -> Dict:
         'company': None,
         'description': None,
         'start_date': None,
-        'date_posted': None,
+        'publication_date': None,
         'title': None
     }
     
@@ -66,7 +66,7 @@ def fetch_details(url: str) -> Dict:
                         details['title'] = data.get('title')
                     
                     if data.get('datePosted'):
-                        details['date_posted'] = data.get('datePosted')
+                        details['publication_date'] = data.get('datePosted')
                     
                     break # Found the JobPosting
             except:
@@ -199,8 +199,8 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             description = details.get('description')
             start_date = details.get('start_date')
             
-            # Date Posted: JSON-LD priority, fallback to list view
-            date_posted = details.get('date_posted') or date_posted
+            # Publication Date: JSON-LD priority, fallback to list view
+            publication_date = details.get('publication_date') or date_posted
 
             # --- Tag Extraction & Classification ---
             # Extract tags from the card container
@@ -234,7 +234,7 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
                 "job_id": job_id,
                 "title": title,
                 "company": company,
-                "date_posted": date_posted,
+                "publication_date": publication_date,
                 "contracts": contracts,
                 "skills": skills,
                 "duration": duration,
@@ -248,7 +248,7 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             })
             
             # Polite delay
-            time.sleep(0.5)
+            time.sleep(random.uniform(1.0, 2.5))
             
         except Exception as e:
             print(f"Error parsing job item {i}: {e}")
