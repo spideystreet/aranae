@@ -8,3 +8,8 @@ beautifulsoup4
 python-dotenv
 mistralai
 crawl4ai
+langgraph
+langchain-ollama
+langchain-core
+psycopg2-binary
+langchainhub
