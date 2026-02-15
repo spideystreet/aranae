@@ -22,5 +22,9 @@ models:
         description: "List of skills required."
       - name: contracts
         description: "Contract types."
+      - name: salary
+        description: "Annual salary if available."
+      - name: tjm
+        description: "Daily rate if available."
       - name: description
         description: "Full job description."

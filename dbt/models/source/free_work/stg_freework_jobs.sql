@@ -1,4 +1,8 @@
 
+{{ config(
+    materialized='table'
+) }}
+
 with source as (
     select * from {{ source('free_work', 'raw_freework_jobs') }}
 ),
@@ -26,7 +30,9 @@ final as (
         skills,
         contracts,
         description,
-        income,
+        income as raw_income,
+        {{ extract_income('income', 'salary') }} as salary,
+        {{ extract_income('income', 'tjm') }} as tjm,
         duration,
         experience_level,
         start_date,
