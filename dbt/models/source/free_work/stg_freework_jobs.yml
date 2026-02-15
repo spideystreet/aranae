@@ -1,0 +1,28 @@
+
+version: 2
+
+models:
+  - name: stg_freework_jobs
+    description: "Staging model for Free-Work jobs. Performs data cleaning, date normalization, and deduplication."
+    columns:
+      - name: job_id
+        description: "Unique identifier for the job."
+        tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Job title."
+      - name: company
+        description: "Hiring company."
+      - name: publication_date
+        description: "Normalized publication date (YYYY-MM-DD)."
+        tests:
+          - not_null
+      - name: city
+        description: "Extracted city from location."
+      - name: raw_location
+        description: "Original location string."
+      - name: url
+        description: "URL to the job offer."
+      - name: scraped_at
+        description: "Timestamp when the job was scraped."
