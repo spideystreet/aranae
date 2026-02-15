@@ -24,5 +24,11 @@ models:
         description: "Original location string."
       - name: url
         description: "URL to the job offer."
+      - name: raw_income
+        description: "Original income string from source."
+      - name: salary
+        description: "Extracted salary (annual)."
+      - name: tjm
+        description: "Extracted TJM (daily rate)."
       - name: scraped_at
         description: "Timestamp when the job was scraped."

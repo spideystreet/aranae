@@ -22,4 +22,3 @@ models:
     source:
       free_work:
         +materialized: table
-        +schema: staging
