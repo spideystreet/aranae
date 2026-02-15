@@ -19,11 +19,7 @@ clean-targets:
 
 models:
   synapse_dbt:
-    staging:
-      +materialized: view
-      +schema: staging
+    source:
       free_work:
-        +tags: ["freework"]
-    marts:
-      +materialized: table
-      +schema: marts
+        +materialized: table
+        +schema: staging
