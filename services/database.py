@@ -22,21 +22,42 @@ def get_db_connection():
         print(f"Error connecting to the database: {e}")
         raise
 
-def fetch_latest_jobs(table_name: str = "raw_freework_jobs", limit: int = 5) -> List[Dict]:
-    """Fetches the latest scraped jobs from the specified table."""
+def ingest_jobs(jobs: List[Dict], table_name: str = "raw_freework_jobs"):
+    """Inserts a list of job dictionaries into the database."""
+    if not jobs:
+        print("No jobs to ingest.")
+        return
+
     conn = get_db_connection()
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            query = f"""
-                SELECT job_id, title, company, publication_date, location, income, skills, contracts, start_date
-                FROM {table_name}
-                ORDER BY scraped_at DESC
-                LIMIT %s
+        with conn.cursor() as cur:
+            # Prepare the insert query with ON CONFLICT to avoid duplicates
+            insert_query = f"""
+                INSERT INTO {table_name} (
+                    job_id, title, company, publication_date, location, 
+                    income, skills, contracts, start_date, url, source, description, scraped_at
+                ) VALUES (
+                    %(job_id)s, %(title)s, %(company)s, %(publication_date)s, %(location)s, 
+                    %(income)s, %(skills)s, %(contracts)s, %(start_date)s, %(url)s, %(source)s, %(description)s, NOW()
+                )
+                ON CONFLICT (job_id) DO NOTHING;
             """
-            cur.execute(query, (limit,))
-            return [dict(row) for row in cur.fetchall()]
+            
+            # Convert list fields to comma-separated strings for storage
+            processed_jobs = []
+            for job in jobs:
+                job_copy = job.copy()
+                if isinstance(job_copy.get('contracts'), list):
+                    job_copy['contracts'] = ', '.join(job_copy['contracts'])
+                if isinstance(job_copy.get('skills'), list):
+                    job_copy['skills'] = ', '.join(job_copy['skills'])
+                processed_jobs.append(job_copy)
+
+            cur.executemany(insert_query, processed_jobs)
+            conn.commit()
+            print(f"Successfully ingested {len(processed_jobs)} jobs into {table_name}.")
     except Exception as e:
-        print(f"Error fetching data from {table_name}: {e}")
-        return []
+        print(f"Error ingesting jobs into {table_name}: {e}")
+        conn.rollback()
     finally:
         conn.close()
