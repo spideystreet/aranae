@@ -95,11 +95,15 @@ def fetch_wttj_details(url: str) -> Dict:
                         salary_min = job_data.get('salary_min')
                         salary_max = job_data.get('salary_max')
                         currency = job_data.get('salary_currency', 'EUR')
+                        
                         if salary_min or salary_max:
                             if salary_min and salary_max:
-                                details['income'] = f"{salary_min}-{salary_max} {currency}"
+                                if salary_min == salary_max:
+                                    details['income'] = f"{salary_min} {currency}"
+                                else:
+                                    details['income'] = f"{salary_min}-{salary_max} {currency}"
                             else:
-                                details['income'] = f"{salary_min or salary_max}+ {currency}"
+                                details['income'] = f"{salary_min or salary_max} {currency}"
 
                         # Experience
                         details['experience_level'] = job_data.get('experience_level')

@@ -19,8 +19,11 @@ final as (
         skills,
         description,
         income as raw_income,
-        {{ extract_income('income', 'salary') }} as salary,
-        {{ extract_income('income', 'tjm') }} as tjm,
+        -- WTTJ income is structured, so we can trust it more.
+        -- If it contains 'EUR', 'k' or looks like a salary, treat as salary.
+        -- TJM is rare on WTTJ but possible.
+        income as salary, 
+        NULL as tjm, -- WTTJ rarely has TJM in the income field the way Freework does
         duration,
         {{ normalize_experience('experience_level') }} as experience_level,
         start_date,
