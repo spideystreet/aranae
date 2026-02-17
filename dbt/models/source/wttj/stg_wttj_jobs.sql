@@ -1,5 +1,3 @@
-{{ config(materialized='table') }}
-
 with source as (
     select * from {{ source('wttj', 'RAW_WTTJ') }}
     where source = 'wttj'

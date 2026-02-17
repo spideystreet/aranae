@@ -1,7 +1,3 @@
-{{ config(
-    materialized='table'
-) }}
-
 select 
     job_id,
     title,

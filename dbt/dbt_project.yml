@@ -19,6 +19,4 @@ clean-targets:
 
 models:
   synapse_dbt:
-    source:
-      free_work:
-        +materialized: table
+    +materialized: table

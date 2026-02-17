@@ -1,5 +1,3 @@
-{{ config(materialized='table') }}
-
 with freework as (
     select * from {{ ref('pvt_freework_jobs') }}
 ),

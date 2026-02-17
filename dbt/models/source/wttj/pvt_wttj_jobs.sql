@@ -1,5 +1,3 @@
-{{ config(materialized='table') }}
-
 with stg as (
     select * from {{ ref('stg_wttj_jobs') }}
 )
