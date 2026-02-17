@@ -30,4 +30,19 @@ Aranae is a data scraping and processing pipeline designed to collect, clean, an
     - Use macros for repetitive logic (`normalize_experience`, `normalize_date`, `extract_income`).
     - Keep materialization as `table` (set globally in `dbt_project.yml`).
     - Use seeds for static reference data.
-- **Git**: Ensure `.user.yml`, `.env`, `scripts/`, and `.streamlit/` are ignored. Always use atomic commits.
+- **Git**: 
+    - Ensure `.user.yml`, `.env`, `scripts/`, and `.streamlit/` are ignored.
+    - **Atomic Commits**: Keep changes focused on a single context.
+    - **Messages**: Must be a single, concise, and clear sentence (e.g., `feat: add wttj scraper`).
+
+## 6. Environment & Execution
+- **Setup**: Always activate the virtual environment before running commands:
+    ```bash
+    source venv/bin/activate
+    ```
+- **Execution**: Use `dotenv run` to automatically load environment variables for any command (avoid exporting manually):
+    ```bash
+    dotenv run -- python scrapers/freework_scraper.py
+    dotenv run -- python scrapers/wttj_scraper.py
+    dotenv run -- dbt run
+    ```
