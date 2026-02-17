@@ -6,10 +6,9 @@ from typing import List, Dict, Optional
 import time
 import random
 from services.ingestor import ingest_jobs
+from services.transformers import build_freework_job_payload
 from scrapers.utils import get_headers, polite_sleep, extract_json_ld, init_job_details
-
-BASE_URL = "https://www.free-work.com/fr/tech-it/jobs"
-CUSTOM_URL = "https://www.free-work.com/fr/tech-it/jobs?query=&locations=fr~~~&contracts=contractor&contracts=permanent&contracts=apprenticeship&contracts=internship&contracts=fixed-term&freshness=less_than_24_hours"
+from scrapers.config import FREEWORK_BASE_URL, FREEWORK_FILTERED_URL
 
 def fetch_details(url: str) -> Dict:
     """
@@ -107,7 +106,7 @@ def fetch_details(url: str) -> Dict:
         
     return details
 
-def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
+def fetch_jobs(page: int = 1, url: str = FREEWORK_BASE_URL) -> List[Dict]:
     """
     Fetches jobs from free-work.com and returns a list of dictionaries.
     If using filters (CUSTOM_URL), page parameter is appended with &page=.
@@ -215,25 +214,15 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
                     skills.append(tag)
             
             # Add to list
-            jobs.append({
-                "job_id": job_id,
-                "title": title,
-                "company": company,
-                "publication_date": publication_date,
-                "contracts": contracts,
-                "skills": skills,
-                "duration": duration,
-                "experience_level": experience_level,
-                "income": income,
-                "location": location,
-                "city": city,
-                "region": region,
-                "description": description,
-                "start_date": start_date,
-                "remote": details.get('remote'),
-                "url": full_url,
-                "source": "free-work"
-            })
+            job_payload = build_freework_job_payload(
+                job_id=job_id,
+                url=full_url,
+                details=details,
+                contracts=contracts,
+                skills=skills,
+                publication_date_fallback=date_posted
+            )
+            jobs.append(job_payload)
             
             # Polite delay
             polite_sleep()
@@ -246,8 +235,8 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
 
 if __name__ == "__main__":
     # Ingestion run
-    print(f"--- STARTING INGESTION WITH CUSTOM_URL: {CUSTOM_URL} ---")
-    data = fetch_jobs(1, CUSTOM_URL)
+    print(f"--- STARTING INGESTION WITH CUSTOM_URL: {FREEWORK_FILTERED_URL} ---")
+    data = fetch_jobs(1, FREEWORK_FILTERED_URL)
     print(f"Fetched {len(data)} jobs.")
     
     if data:

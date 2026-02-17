@@ -7,9 +7,10 @@ import re
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 from services.ingestor import ingest_jobs
+from services.transformers import build_wttj_job_payload
 from playwright.sync_api import sync_playwright
-
-BASE_URL = "https://www.welcometothejungle.com/en/jobs?aroundQuery=France&refinementList%5Boffices.country_code%5D%5B%5D=FR&sortBy=mostRecent"
+from scrapers.utils import get_headers, polite_sleep, init_job_details
+from scrapers.config import WTTJ_BASE_URL
 
 def fetch_wttj_details(url: str) -> Dict:
     """
@@ -150,7 +151,7 @@ def fetch_wttj_jobs(pages: int = 1) -> List[Dict]:
         for p_idx in range(1, pages + 1):
             if stop_scraping: break
             
-            url = f"{BASE_URL}&page={p_idx}"
+            url = f"{WTTJ_BASE_URL}&page={p_idx}"
             print(f"Fetching WTTJ page {p_idx}...")
             
             try:
@@ -206,27 +207,14 @@ def fetch_wttj_jobs(pages: int = 1) -> List[Dict]:
 
                     details = fetch_wttj_details(full_url)
                     
-                    job_data = {
-                        "job_id": job_id,
-                        "title": details.get('title'),
-                        "company": details.get('company'),
-                        "publication_date": details.get('publication_date') or job_link['datetime'],
-                        "location": details.get('location'),
-                        "city": details.get('city'),
-                        "region": details.get('region'),
-                        "income": details.get('income'),
-                        "skills": details.get('skills'),
-                        "contracts": details.get('contracts'),
-                        "duration": details.get('duration'),
-                        "experience_level": details.get('experience_level'),
-                        "start_date": details.get('start_date'),
-                        "remote": details.get('remote'),
-                        "description": details.get('description'),
-                        "url": full_url,
-                        "source": "wttj"
-                    }
+                    job_payload = build_wttj_job_payload(
+                        job_id=job_id,
+                        url=full_url,
+                        details=details,
+                        publication_date_fallback=job_link['datetime']
+                    )
                     
-                    jobs.append(job_data)
+                    jobs.append(job_payload)
                     time.sleep(random.uniform(0.2, 0.4))
                     
             except Exception as e:
