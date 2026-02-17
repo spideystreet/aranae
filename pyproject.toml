@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "synapse"
+name = "aranae"
 version = "0.1.0"
 authors = [
   { name="spideystreet", email="dhicham.pro@gmail.com" },
 ]
-description = "Job scraping and analysis pipeline"
+description = "Jobs analysis pipeline"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

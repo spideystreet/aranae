@@ -1,4 +1,4 @@
-synapse_dbt:
+aranae_dbt:
   target: dev
   outputs:
     dev:

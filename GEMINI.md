@@ -1,7 +1,7 @@
-# Synapse - Project Context & Guidelines
+# Aranae - Project Context & Guidelines
 
 ## 1. Project Overview
-Synapse is a data scraping and processing pipeline designed to collect, clean, and store job offers from various platforms (Free-Work and Welcome to the Jungle).
+Aranae is a data scraping and processing pipeline designed to collect, clean, and store job offers from various platforms (Free-Work and Welcome to the Jungle).
 
 ## 2. Tech Stack
 - **Python**: Core logic and scrapers.

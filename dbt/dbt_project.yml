@@ -1,9 +1,9 @@
 
-name: 'synapse_dbt'
+name: 'aranae_dbt'
 version: '1.0.0'
 config-version: 2
 
-profile: 'synapse_dbt'
+profile: 'aranae_dbt'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -18,5 +18,5 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  synapse_dbt:
+  aranae_dbt:
     +materialized: table
