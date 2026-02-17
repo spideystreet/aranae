@@ -1,4 +1,3 @@
-
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -7,6 +6,7 @@ from typing import List, Dict, Optional
 import time
 import random
 from services.ingestor import ingest_jobs
+from scrapers.utils import get_headers, polite_sleep, extract_json_ld, init_job_details
 
 BASE_URL = "https://www.free-work.com/fr/tech-it/jobs"
 CUSTOM_URL = "https://www.free-work.com/fr/tech-it/jobs?query=&locations=fr~~~&contracts=contractor&contracts=permanent&contracts=apprenticeship&contracts=internship&contracts=fixed-term&freshness=less_than_24_hours"
@@ -16,79 +16,37 @@ def fetch_details(url: str) -> Dict:
     Fetches the full details from the job detail page.
     Returns a dict with location, salary, tjm, duration, description, etc.
     """
-    details = {
-        'location': None,
-        'city': None,
-        'region': None,
-        'income': None, # Consolidated salary/tjm
-        'duration': None,
-        'experience_level': None, # New field
-        'company': None,
-        'description': None,
-        'start_date': None,
-        'publication_date': None,
-        'title': None,
-        'remote': None
-    }
+    details = init_job_details()
     
     try:
         if not url or url == "N/A": return details
         
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=get_headers(), timeout=10)
         if response.status_code != 200:
             return details
             
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # --- JSON-LD Extraction (Priority 1) ---
-        ld_scripts = soup.select('script[type="application/ld+json"]')
-        for s in ld_scripts:
-            try:
-                data = json.loads(s.get_text())
-                if data.get('@type') == 'JobPosting':
-                    # Extract cleanly
-                    if data.get('hiringOrganization'):
-                        details['company'] = data['hiringOrganization'].get('name')
-                    
-                    if data.get('jobLocation'):
-                        addr = data['jobLocation'].get('address', {})
-                        if isinstance(addr, dict):
-                            # Construct location string: City, Region, Country
-                            city = addr.get('addressLocality')
-                            region = addr.get('addressRegion')
-                            country = addr.get('addressCountry')
-                            
-                            details['city'] = city
-                            details['region'] = region
-                            
-                            parts = [city, region, country]
-                            details['location'] = ', '.join([p for p in parts if p])
-                    
-                    if data.get('description'):
-                        # It is HTML, so strip it or keep it? User wants clean text usually.
-                        # But scraper.py usually returns text.
-                        # Let's use BS4 to strip HTML from it
-                        details['description'] = BeautifulSoup(data['description'], 'html.parser').get_text(separator="\n", strip=True)
-                    
-                    if data.get('title'):
-                        details['title'] = data.get('title')
-                    
-                    if data.get('datePosted'):
-                        details['publication_date'] = data.get('datePosted')
-                    
-                    break # Found the JobPosting
-            except:
-                pass
-        
-        if not details['company']:
-             # Small safety net: if JSON-LD entirely failed to parse or missing type
-             # We might leave it None, as user requested "ONLY JSON-LD".
-             # But if user says "uniquement le json-ld sur chaque offre pour les matadatas",
-             # it implies "don't mix sources".
-             pass
+        ld_data = extract_json_ld(soup)
+        if ld_data:
+            if ld_data.get('hiringOrganization'):
+                details['company'] = ld_data['hiringOrganization'].get('name')
+            
+            if ld_data.get('jobLocation'):
+                addr = ld_data['jobLocation'].get('address', {})
+                if isinstance(addr, dict):
+                    details['city'] = addr.get('addressLocality')
+                    details['region'] = addr.get('addressRegion')
+                    country = addr.get('addressCountry')
+                    parts = [details['city'], details['region'], country]
+                    details['location'] = ', '.join([p for p in parts if p])
+            
+            if ld_data.get('description'):
+                details['description'] = BeautifulSoup(ld_data['description'], 'html.parser').get_text(separator="\n", strip=True)
+            
+            details['title'] = ld_data.get('title')
+            details['publication_date'] = ld_data.get('datePosted')
 
         # --- Grid Section (Salary, TJM, Duration, Experience) ---
         grid_items = soup.select('div.grid div.flex.items-center.py-1')
@@ -157,12 +115,8 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
     target_url = f"{url}&page={page}" if '?' in url else f"{url}?page={page}"
     print(f"Fetching {target_url}...")
     
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-    
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=get_headers(), timeout=10)
         response.raise_for_status()
     except requests.RequestException as e:
         print(f"Error fetching page {page}: {e}")
@@ -282,7 +236,7 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             })
             
             # Polite delay
-            time.sleep(random.uniform(1.0, 2.5))
+            polite_sleep()
             
         except Exception as e:
             print(f"Error parsing job item {i}: {e}")

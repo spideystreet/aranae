@@ -11,7 +11,7 @@ Synapse is a data scraping and processing pipeline designed to collect, clean, a
 - **Dagster**: Orchestration (In progress).
 
 ## 3. Architecture (ELT)
-- **Scrapers**: `scrapers/*_scraper.py`. High-fidelity extraction (WTTJ uses `__INITIAL_DATA__` for deep extraction).
+- **Scrapers**: `scrapers/*_scraper.py`. High-fidelity extraction (WTTJ uses `__INITIAL_DATA__` for deep extraction). Modularized via `scrapers/utils.py`.
 - **RAW Layer**: Tables `RAW_FREEWORK` and `RAW_WTTJ` contains strictly raw data from sources. **No mapping or cleaning allowed here.**
 - **Staging Layer (dbt)**: `stg_*` models handle normalization (dates, income, contracts, remote, experience).
 - **Mart Layer (dbt)**: `fct_jobs` unified view for all platforms.
