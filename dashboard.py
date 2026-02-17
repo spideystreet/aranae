@@ -4,6 +4,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 import plotly.express as px
+from services.db import get_db_connection
 
 # Load environment variables
 load_dotenv()
@@ -18,19 +19,9 @@ st.set_page_config(
 st.title("🕸️ Synapse - Job Analytics")
 st.markdown("---")
 
-@st.cache_resource
-def get_connection():
-    return psycopg2.connect(
-        host=os.getenv("POSTGRES_HOST"),
-        port=os.getenv("POSTGRES_PORT"),
-        user=os.getenv("POSTGRES_USER"),
-        password=os.getenv("POSTGRES_PASSWORD"),
-        database=os.getenv("POSTGRES_DB")
-    )
-
 @st.cache_data(ttl=600)
 def load_data():
-    conn = get_connection()
+    conn = get_db_connection()
     # Join with source_metadata to get icons
     # We select specific columns to avoid duplicate 'source' column names
     query = """

@@ -6,7 +6,7 @@ import json
 from typing import List, Dict, Optional
 import time
 import random
-from services.database import ingest_jobs
+from services.ingestor import ingest_jobs
 
 BASE_URL = "https://www.free-work.com/fr/tech-it/jobs"
 CUSTOM_URL = "https://www.free-work.com/fr/tech-it/jobs?query=&locations=fr~~~&contracts=contractor&contracts=permanent&contracts=apprenticeship&contracts=internship&contracts=fixed-term&freshness=less_than_24_hours"

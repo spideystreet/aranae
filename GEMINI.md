@@ -25,7 +25,7 @@ Synapse is a data scraping and processing pipeline designed to collect, clean, a
 
 ## 5. Development Rules
 - **ELT Flow**: Scrapers load raw ➔ Staging normalizes ➔ Pivot/Mart aggregates.
-- **Scrapers**: Follow naming convention `[source]_scraper.py`. Use `services/database.py` for all DB interactions.
+- **Scrapers**: Follow naming convention `[source]_scraper.py`. Use `services/ingestor.py` for all DB ingestion.
 - **Dbt**: 
     - Use macros for repetitive logic (`normalize_experience`, `normalize_date`, `extract_income`).
     - Keep materialization as `table` (set globally in `dbt_project.yml`).
