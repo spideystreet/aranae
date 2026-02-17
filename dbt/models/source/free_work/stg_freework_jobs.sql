@@ -1,8 +1,3 @@
-
-{{ config(
-    materialized='table'
-) }}
-
 with source as (
     select * from {{ source('free_work', 'RAW_FREEWORK') }}
     where source = 'free-work'
