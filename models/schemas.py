@@ -10,6 +10,8 @@ class JobSchema(BaseModel):
     income: Optional[str] = None
     skills: Optional[Union[List[str], str]] = None
     contracts: Optional[Union[List[str], str]] = None
+    duration: Optional[str] = None
+    experience_level: Optional[str] = None
     start_date: Optional[str] = None
     url: Optional[str] = None
     source: Optional[str] = None

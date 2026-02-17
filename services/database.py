@@ -1,9 +1,14 @@
 
 import os
+import sys
 import psycopg2
 from typing import List, Dict
 from dotenv import load_dotenv
 from psycopg2.extras import RealDictCursor
+
+# Allow importing from project root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from models.schemas import JobSchema
 
 load_dotenv()
 
@@ -22,38 +27,56 @@ def get_db_connection():
         print(f"Error connecting to the database: {e}")
         raise
 
-def ingest_jobs(jobs: List[Dict], table_name: str = "raw_freework_jobs"):
-    """Inserts a list of job dictionaries into the database."""
+def ingest_jobs(jobs: List[Dict], table_name: str = "raw_jobs"):
+    """Inserts a list of job dictionaries into the database using Pydantic validation."""
     if not jobs:
         print("No jobs to ingest.")
+        return
+
+    # Validate and process jobs via Pydantic
+    processed_jobs = []
+    for job_data in jobs:
+        try:
+            job = JobSchema(**job_data)
+            processed_jobs.append(job.to_db_dict())
+        except Exception as e:
+            print(f"Validation error for job {job_data.get('job_id')}: {e}")
+            continue
+
+    if not processed_jobs:
+        print("No valid jobs to ingest.")
         return
 
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
             # Prepare the insert query with ON CONFLICT to avoid duplicates
+            # Using the unified table structure with (source, job_id) unique constraint
             insert_query = f"""
                 INSERT INTO {table_name} (
                     job_id, title, company, publication_date, location, 
-                    income, skills, contracts, start_date, url, source, description, scraped_at
+                    income, skills, contracts, start_date, url, source, description, duration, experience_level, scraped_at
                 ) VALUES (
                     %(job_id)s, %(title)s, %(company)s, %(publication_date)s, %(location)s, 
-                    %(income)s, %(skills)s, %(contracts)s, %(start_date)s, %(url)s, %(source)s, %(description)s, NOW()
+                    %(income)s, %(skills)s, %(contracts)s, %(start_date)s, %(url)s, %(source)s, %(description)s, %(duration)s, %(experience_level)s, NOW()
                 )
-                ON CONFLICT (job_id) DO NOTHING;
+                ON CONFLICT (source, job_id) DO UPDATE SET 
+                    scraped_at = NOW(),
+                    title = EXCLUDED.title,
+                    company = EXCLUDED.company,
+                    publication_date = EXCLUDED.publication_date,
+                    location = EXCLUDED.location,
+                    income = EXCLUDED.income,
+                    skills = EXCLUDED.skills,
+                    contracts = EXCLUDED.contracts,
+                    start_date = EXCLUDED.start_date,
+                    url = EXCLUDED.url,
+                    description = EXCLUDED.description,
+                    duration = EXCLUDED.duration,
+                    experience_level = EXCLUDED.experience_level;
             """
-            
-            # Convert list fields to comma-separated strings for storage
-            processed_jobs = []
-            for job in jobs:
-                job_copy = job.copy()
-                if isinstance(job_copy.get('contracts'), list):
-                    job_copy['contracts'] = ', '.join(job_copy['contracts'])
-                if isinstance(job_copy.get('skills'), list):
-                    job_copy['skills'] = ', '.join(job_copy['skills'])
-                processed_jobs.append(job_copy)
-
             cur.executemany(insert_query, processed_jobs)
+
             conn.commit()
             print(f"Successfully ingested {len(processed_jobs)} jobs into {table_name}.")
     except Exception as e:
