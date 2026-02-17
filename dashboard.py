@@ -11,12 +11,12 @@ load_dotenv()
 
 # Page configuration
 st.set_page_config(
-    page_title="Synapse - Job Analytics",
+    page_title="Aranae - Job Analytics",
     page_icon="🕸️",
     layout="wide"
 )
 
-st.title("🕸️ Synapse - Job Analytics")
+st.title("🕸️ Aranae - Job Analytics")
 st.markdown("---")
 
 @st.cache_data(ttl=600)
