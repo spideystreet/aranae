@@ -209,3 +209,6 @@ __marimo__/
 
 # Scripts
 scripts/
+
+# Temp
+.streamlit/

@@ -1,27 +1,33 @@
 # Synapse - Project Context & Guidelines
 
 ## 1. Project Overview
-Synapse is a data scraping and processing pipeline designed to collect, clean, and store job offers from various platforms (e.g., Free-Work).
+Synapse is a data scraping and processing pipeline designed to collect, clean, and store job offers from various platforms (Free-Work and Welcome to the Jungle).
 
 ## 2. Tech Stack
-- **Python**: Core logic.
-- **PostgreSQL**: Primary data store for jobs and raw HTML.
-- **dbt**: For data transformation and modeling within PostgreSQL.
-- **Dagster** (Planned): For pipeline orchestration.
+- **Python**: Core logic and scrapers.
+- **PostgreSQL**: Primary data store.
+- **dbt**: Data transformation layer (ELT).
+- **Streamlit**: Data visualization dashboard.
+- **Dagster**: Orchestration (In progress).
 
-## 3. Architecture
-- **Scrapers**: Modules responsible for fetching and parsing HTML from job boards.
-- **Database Service**: `services/database.py` for all PostgreSQL interactions.
-- **Transformations**: dbt models for cleaning and structuring scraped data.
-- **Data Model**: Structured storage of job titles, companies, locations, dates, and descriptions.
+## 3. Architecture (ELT)
+- **Scrapers**: `scrapers/*_scraper.py`. High-fidelity extraction (WTTJ uses `__INITIAL_DATA__` for deep extraction).
+- **RAW Layer**: Tables `RAW_FREEWORK` and `RAW_WTTJ` contains strictly raw data from sources. **No mapping or cleaning allowed here.**
+- **Staging Layer (dbt)**: `stg_*` models handle normalization (dates, income, contracts, remote, experience).
+- **Mart Layer (dbt)**: `fct_jobs` unified view for all platforms.
+- **Metadata**: Managed via dbt seeds (`sources_metadatas.csv`).
 
 ## 4. Current State
-- Database connection and basic job fetching logic implemented.
-- dbt project initialized for data modeling.
-- Initial research on prompt-based cleaning performed (later simplified/removed).
+- Robust scraping for Free-Work and WTTJ implemented.
+- dbt project configured with global `table` materialization.
+- Unified dashboard with filtration and platform icons.
+- Standardized mapping for Remote Work (`Télétravail 100%`, `Télétravail partiel`, `Présentiel`, `Pas d'infos`).
 
 ## 5. Development Rules
-- **Structure**: Maintain a clean separation between scrapers, services, models (dbt), and orchestration.
-- **Modeling**: Use dbt for all SQL-based transformations.
-- **Database**: Always use the centralized `database.py` service for script-based ingestion.
-- **Code Quality**: Ensure clear documentation and error handling in all scraping logic.
+- **ELT Flow**: Scrapers load raw ➔ Staging normalizes ➔ Pivot/Mart aggregates.
+- **Scrapers**: Follow naming convention `[source]_scraper.py`. Use `services/database.py` for all DB interactions.
+- **Dbt**: 
+    - Use macros for repetitive logic (`normalize_experience`, `normalize_date`, `extract_income`).
+    - Keep materialization as `table` (set globally in `dbt_project.yml`).
+    - Use seeds for static reference data.
+- **Git**: Ensure `.user.yml`, `.env`, `scripts/`, and `.streamlit/` are ignored. Always use atomic commits.
