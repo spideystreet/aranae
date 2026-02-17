@@ -7,6 +7,8 @@ class JobSchema(BaseModel):
     company: Optional[str] = None
     publication_date: Optional[str] = None
     location: Optional[str] = None
+    city: Optional[str] = None
+    region: Optional[str] = None
     income: Optional[str] = None
     skills: Optional[Union[List[str], str]] = None
     contracts: Optional[Union[List[str], str]] = None
@@ -16,6 +18,7 @@ class JobSchema(BaseModel):
     url: Optional[str] = None
     source: Optional[str] = None
     description: Optional[str] = None
+    remote: Optional[str] = None
 
     def to_db_dict(self):
         """Converts the model to a dictionary suitable for database insertion."""

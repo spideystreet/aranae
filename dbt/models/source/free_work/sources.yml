@@ -5,4 +5,4 @@ sources:
   - name: free_work
     schema: public
     tables:
-      - name: raw_jobs
+      - name: RAW_FREEWORK

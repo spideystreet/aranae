@@ -4,7 +4,7 @@
 ) }}
 
 with source as (
-    select * from {{ source('free_work', 'raw_jobs') }}
+    select * from {{ source('free_work', 'RAW_FREEWORK') }}
     where source = 'free-work'
 ),
 
@@ -13,12 +13,9 @@ final as (
         job_id,
         title,
         company,
-        -- Apply transformations here:
-        -- 1. Normalize Date
         {{ normalize_date('publication_date') }} as publication_date,
-        -- 2. Extract City
-        split_part(location, ',', 1) as city,
-        
+        city,
+        region,
         location as raw_location,
         url,
         skills,
@@ -30,6 +27,12 @@ final as (
         duration,
         experience_level,
         start_date,
+        -- mapping freework remote naming conventions
+        CASE 
+            WHEN lower(remote) LIKE '%100%%' OR lower(remote) LIKE '%total%' THEN 'Télétravail 100%'
+            WHEN lower(remote) LIKE '%télétravail%' OR lower(remote) LIKE '%remote%' THEN 'Télétravail partiel'
+            ELSE 'Pas d''infos'
+        END as remote,
         source,
         scraped_at
     from source
