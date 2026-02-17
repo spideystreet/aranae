@@ -6,7 +6,7 @@ import random
 import re
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
-from services.database import ingest_jobs
+from services.ingestor import ingest_jobs
 from playwright.sync_api import sync_playwright
 
 BASE_URL = "https://www.welcometothejungle.com/en/jobs?aroundQuery=France&refinementList%5Boffices.country_code%5D%5B%5D=FR&sortBy=mostRecent"

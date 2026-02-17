@@ -1,34 +1,17 @@
-
 import os
 import sys
-import psycopg2
 from typing import List, Dict
-from dotenv import load_dotenv
-from psycopg2.extras import RealDictCursor
+from services.db import get_db_connection
 
-# Allow importing from project root
+# Allow importing from project root for models
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.schemas import JobSchema
 
-load_dotenv()
-
-def get_db_connection():
-    """Returns a connection to the PostgreSQL database"""
-    try:
-        conn = psycopg2.connect(
-            host=os.getenv("POSTGRES_HOST"),
-            port=os.getenv("POSTGRES_PORT"),
-            user=os.getenv("POSTGRES_USER"),
-            password=os.getenv("POSTGRES_PASSWORD"),
-            database=os.getenv("POSTGRES_DB")
-        )
-        return conn
-    except Exception as e:
-        print(f"Error connecting to the database: {e}")
-        raise
-
 def ingest_jobs(jobs: List[Dict], table_name: str = "raw_jobs"):
-    """Inserts a list of job dictionaries into the database using Pydantic validation."""
+    """
+    Inserts a list of job dictionaries into the database using Pydantic validation.
+    The table_name should typically be RAW_FREEWORK or RAW_WTTJ.
+    """
     if not jobs:
         print("No jobs to ingest.")
         return
