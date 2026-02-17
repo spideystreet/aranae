@@ -6,6 +6,7 @@ import json
 from typing import List, Dict, Optional
 import time
 import random
+from services.database import ingest_jobs
 
 BASE_URL = "https://www.free-work.com/fr/tech-it/jobs"
 CUSTOM_URL = "https://www.free-work.com/fr/tech-it/jobs?query=&locations=fr~~~&contracts=contractor&contracts=permanent&contracts=apprenticeship&contracts=internship&contracts=fixed-term&freshness=less_than_24_hours"
@@ -17,6 +18,8 @@ def fetch_details(url: str) -> Dict:
     """
     details = {
         'location': None,
+        'city': None,
+        'region': None,
         'income': None, # Consolidated salary/tjm
         'duration': None,
         'experience_level': None, # New field
@@ -24,7 +27,8 @@ def fetch_details(url: str) -> Dict:
         'description': None,
         'start_date': None,
         'publication_date': None,
-        'title': None
+        'title': None,
+        'remote': None
     }
     
     try:
@@ -53,7 +57,14 @@ def fetch_details(url: str) -> Dict:
                         addr = data['jobLocation'].get('address', {})
                         if isinstance(addr, dict):
                             # Construct location string: City, Region, Country
-                            parts = [addr.get('addressLocality'), addr.get('addressRegion'), addr.get('addressCountry')]
+                            city = addr.get('addressLocality')
+                            region = addr.get('addressRegion')
+                            country = addr.get('addressCountry')
+                            
+                            details['city'] = city
+                            details['region'] = region
+                            
+                            parts = [city, region, country]
                             details['location'] = ', '.join([p for p in parts if p])
                     
                     if data.get('description'):
@@ -79,41 +90,59 @@ def fetch_details(url: str) -> Dict:
              # it implies "don't mix sources".
              pass
 
-        # --- Grid Section (Salary, TJM, Duration) ---
-        # User snippet: <div class="grid"> ... <div class="flex items-center py-1"> <span ...> Text </span> </div> ... </div>
-        # We look for the grid container and iterate its items
-        grid_div = soup.select_one('div.grid')
-        if grid_div:
-            # Iterate over all items in the grid
-            items = grid_div.select('div.flex.items-center.py-1 span.w-full.text-sm.line-clamp-2')
-            for span in items:
-                text = span.get_text(strip=True)
-                # Normalize text: fraction slash to slash, nbsp to space
-                text_clean = text.replace('\u2044', '/').replace('\xa0', ' ')
-                lower_text = text_clean.lower()
+        # --- Grid Section (Salary, TJM, Duration, Experience) ---
+        grid_items = soup.select('div.grid div.flex.items-center.py-1')
+        
+        for item in grid_items:
+            span = item.select_one('span.w-full.text-sm.line-clamp-2')
+            if not span:
+                continue
                 
-                # Logic per user rules:
-                # Capture all monetary values into 'income'
-                if '€' in lower_text or 'k€' in lower_text or 'eur' in lower_text:
-                     details['income'] = text_clean
+            text = span.get_text(strip=True).replace('\u2044', '/').replace('\xa0', ' ')
+            text_lower = text.lower()
+            
+            # 1. Income (already robust)
+            if any(x in text_lower for x in ['€', 'eur', 'k€']):
+                details['income'] = text
+                continue
                 
-                if 'mois' in lower_text or 'ans' in lower_text or 'semaines' in lower_text or 'durée' in lower_text:
-                     # Check if it is "Expérience"
-                     if 'expérience' in lower_text:
-                         details['experience_level'] = text
-                     else:
-                         # Otherwise assume duration (e.g. 12 mois)
-                         details['duration'] = text
+            # 2. Experience Level
+            # Looking for "expérience" or "exp"
+            if 'expér' in text_lower or ' exp' in text_lower or text_lower.startswith('exp'):
+                details['experience_level'] = text
+                continue
                 
-                if 'dès que possible' in lower_text or '/' in text and len(text) < 12 and any(c.isdigit() for c in text):
-                     # Potential start date
-                     details['start_date'] = text
+            # 3. Start Date
+            if 'dès' in text_lower or 'asap' in text_lower:
+                details['start_date'] = text
+                continue
 
-        # --- Description (HTML Fallback) ---
-        # User requested JSON-LD only for metadata, so we rely on that.
-        # But if JSON-LD missing, description is None.
-        # Is this acceptable? Yes ("avoid data errors").
-        pass
+            # 4. Duration
+            # Avoid matching "France" or "Remote" by being stricter.
+            # Duration usually contains a number + unit
+            units = ['mois', ' an', ' ans', 'semaine', 'durée']
+            if any(u in text_lower for u in units) and 'exp' not in text_lower:
+                # Extra safety: check if it contains a digit
+                if any(char.isdigit() for char in text):
+                    details['duration'] = text
+                continue
+            
+            # 5. Remote (Raw storage for ELT)
+            if 'télétravail' in text_lower or 'remote' in text_lower:
+                 details['remote'] = text
+                 continue
+
+        # Fallback/Safety: If JSON-LD failed for title/company/location
+        if not details['title']:
+            h1 = soup.select_one('h1')
+            if h1: details['title'] = h1.get_text(strip=True)
+            
+        if not details['location']:
+             # Last item in grid is usually location if not captured
+             if grid_items:
+                 last_text = grid_items[-1].get_text(strip=True)
+                 if 'france' in last_text.lower() or ',' in last_text:
+                     details['location'] = last_text
             
     except Exception as e:
         print(f"Error fetching details for {url}: {e}")
@@ -193,6 +222,8 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
             title = details.get('title')
             company = details.get('company')
             location = details.get('location')
+            city = details.get('city')
+            region = details.get('region')
             income = details.get('income')
             duration = details.get('duration')
             experience_level = details.get('experience_level')
@@ -241,8 +272,11 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
                 "experience_level": experience_level,
                 "income": income,
                 "location": location,
+                "city": city,
+                "region": region,
                 "description": description,
                 "start_date": start_date,
+                "remote": details.get('remote'),
                 "url": full_url,
                 "source": "free-work"
             })
@@ -257,17 +291,22 @@ def fetch_jobs(page: int = 1, url: str = BASE_URL) -> List[Dict]:
     return jobs
 
 if __name__ == "__main__":
-    # Test with custom URL
-    print(f"Testing scraper with CUSTOM_URL: {CUSTOM_URL}")
+    # Ingestion run
+    print(f"--- STARTING INGESTION WITH CUSTOM_URL: {CUSTOM_URL} ---")
     data = fetch_jobs(1, CUSTOM_URL)
     print(f"Fetched {len(data)} jobs.")
+    
     if data:
+        # Ingest into database
+        ingest_jobs(data, table_name="RAW_FREEWORK")
+        
+        # Print first few for confirmation
         for i, job in enumerate(data[:5]):
             print(f"Job {i}:")
             print(f"  Title: {job['title']}")
             print(f"  Company: {job['company']}")
             print(f"  Location: {job['location']}")
-            print(f"  Date: {job['date_posted']}")
+            print(f"  Date: {job['publication_date']}")
             print(f"  Contracts: {job['contracts']}")
             print(f"  Income: {job['income']} | Duration: {job['duration']} | XP: {job['experience_level']}")
             print("---")

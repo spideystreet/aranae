@@ -1,8 +1,11 @@
-{{ config(
-    materialized='table'
-) }}
+{{ config(materialized='table') }}
 
-select 
+with stg as (
+    select * from {{ ref('stg_wttj_jobs') }}
+)
+
+select
+    -- FIXED ORDER TO MATCH FREEWORK
     job_id,
     title,
     company,
@@ -21,5 +24,4 @@ select
     remote,
     source,
     scraped_at
-from {{ ref('stg_freework_jobs') }}
-order by publication_date desc
+from stg

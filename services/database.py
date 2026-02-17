@@ -53,12 +53,12 @@ def ingest_jobs(jobs: List[Dict], table_name: str = "raw_jobs"):
             # Prepare the insert query with ON CONFLICT to avoid duplicates
             # Using the unified table structure with (source, job_id) unique constraint
             insert_query = f"""
-                INSERT INTO {table_name} (
-                    job_id, title, company, publication_date, location, 
-                    income, skills, contracts, start_date, url, source, description, duration, experience_level, scraped_at
+                INSERT INTO "{table_name}" (
+                    job_id, title, company, publication_date, location, city, region,
+                    income, skills, contracts, start_date, url, source, description, duration, experience_level, remote, scraped_at
                 ) VALUES (
-                    %(job_id)s, %(title)s, %(company)s, %(publication_date)s, %(location)s, 
-                    %(income)s, %(skills)s, %(contracts)s, %(start_date)s, %(url)s, %(source)s, %(description)s, %(duration)s, %(experience_level)s, NOW()
+                    %(job_id)s, %(title)s, %(company)s, %(publication_date)s, %(location)s, %(city)s, %(region)s,
+                    %(income)s, %(skills)s, %(contracts)s, %(start_date)s, %(url)s, %(source)s, %(description)s, %(duration)s, %(experience_level)s, %(remote)s, NOW()
                 )
                 ON CONFLICT (source, job_id) DO UPDATE SET 
                     scraped_at = NOW(),
@@ -66,6 +66,8 @@ def ingest_jobs(jobs: List[Dict], table_name: str = "raw_jobs"):
                     company = EXCLUDED.company,
                     publication_date = EXCLUDED.publication_date,
                     location = EXCLUDED.location,
+                    city = EXCLUDED.city,
+                    region = EXCLUDED.region,
                     income = EXCLUDED.income,
                     skills = EXCLUDED.skills,
                     contracts = EXCLUDED.contracts,
@@ -73,7 +75,8 @@ def ingest_jobs(jobs: List[Dict], table_name: str = "raw_jobs"):
                     url = EXCLUDED.url,
                     description = EXCLUDED.description,
                     duration = EXCLUDED.duration,
-                    experience_level = EXCLUDED.experience_level;
+                    experience_level = EXCLUDED.experience_level,
+                    remote = EXCLUDED.remote;
             """
             cur.executemany(insert_query, processed_jobs)
 
