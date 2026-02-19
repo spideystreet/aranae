@@ -18,11 +18,8 @@ Create clear, comprehensive, and up-to-date documentation for the project. Ensur
 - Always reflect the actual state of the code. Read source files before documenting.
 - Use French for user-facing docs if the existing doc is in French, English otherwise.
 - Never execute commands or modify code. Only write documentation files.
-- Keep `GEMINI.md` and `README.md` aligned with actual project structure.
-
 ## Documentation Scope
 - `README.md` — Project overview, setup instructions, quickstart
-- `GEMINI.md` — AI context file (project rules for AI assistants)
 - `AGENTS.md` — Opencode global rules
 - `.env.example` — Document all required environment variables
 - Inline comments in complex code sections
@@ -34,7 +31,6 @@ Create clear, comprehensive, and up-to-date documentation for the project. Ensur
 
 ## Reference Files
 - `README.md` — current README
-- `GEMINI.md` — AI context
 - `AGENTS.md` — Opencode rules
 - `.env.example` — env template
 - `pyproject.toml` — project metadata
