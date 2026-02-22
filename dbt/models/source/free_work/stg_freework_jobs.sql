@@ -13,7 +13,8 @@ final as (
         region,
         location as raw_location,
         url,
-        skills,
+        skills as raw_skills,
+        {{ standardize_skills('skills') }} as normalized_skills,
         contracts,
         description,
         income as raw_income,
@@ -22,7 +23,6 @@ final as (
         duration,
         experience_level,
         start_date,
-        -- mapping freework remote naming conventions
         CASE 
             WHEN lower(remote) LIKE '%100%%' OR lower(remote) LIKE '%total%' THEN 'Télétravail 100%'
             WHEN lower(remote) LIKE '%télétravail%' OR lower(remote) LIKE '%remote%' THEN 'Télétravail partiel'

@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: fct_jobs
+    description: "Table consolidée des offres d'emploi avec compétences standardisées"
+    columns:
+      - name: job_id
+        description: "Identifiant unique de l'offre"
+        tests:
+          - unique
+          - not_null
+      - name: raw_skills
+        description: "Compétences brutes (non traitées)"
+      - name: normalized_skills
+        description: "Compétences normalisées (minuscules, sans doublons)"
+        tests:
+          - not_null
+      - name: skill_categories
+        description: "Catégories de compétences standardisées (python, java, data-engineering, etc.)"
+        tests:
+          - not_null

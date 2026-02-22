@@ -1,9 +1,15 @@
 with stg as (
     select * from {{ ref('stg_wttj_jobs') }}
+),
+
+skills_categorized as (
+    select
+        *,
+        {{ categorize_skills('normalized_skills') }} as skill_categories
+    from stg
 )
 
 select
-    -- FIXED ORDER TO MATCH FREEWORK
     job_id,
     title,
     company,
@@ -11,7 +17,9 @@ select
     city,
     region,
     url,
-    skills,
+    raw_skills,
+    normalized_skills,
+    skill_categories,
     contracts,
     description,
     salary,
@@ -22,4 +30,4 @@ select
     remote,
     source,
     scraped_at
-from stg
+from skills_categorized

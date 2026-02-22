@@ -1,3 +1,14 @@
+with stg as (
+    select * from {{ ref('stg_freework_jobs') }}
+),
+
+skills_categorized as (
+    select
+        *,
+        {{ categorize_skills('normalized_skills') }} as skill_categories
+    from stg
+)
+
 select 
     job_id,
     title,
@@ -6,7 +17,9 @@ select
     city,
     region,
     url,
-    skills,
+    raw_skills,
+    normalized_skills,
+    skill_categories,
     contracts,
     description,
     salary,
@@ -17,5 +30,5 @@ select
     remote,
     source,
     scraped_at
-from {{ ref('stg_freework_jobs') }}
+from skills_categorized
 order by publication_date desc
