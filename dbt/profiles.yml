@@ -1,12 +1,14 @@
-aranae_dbt:
-  target: dev
+config:
+  send_anonymous_usage_stats: false
+
+aranae:
+  target: ci
   outputs:
-    dev:
-      type: postgres
-      host: "{{ env_var('POSTGRES_HOST') }}"
-      user: "{{ env_var('POSTGRES_USER') }}"
-      password: "{{ env_var('POSTGRES_PASSWORD') }}"
-      port: "{{ env_var('POSTGRES_PORT') | int }}"
-      dbname: "{{ env_var('POSTGRES_DB') }}"
-      schema: public
-      threads: 1
+    ci:
+      type: clickhouse
+      schema: default
+      host: "{{ env_var('CLICKHOUSE_HOST') }}"
+      port: "{{ env_var('CLICKHOUSE_PORT') | as_number }}"
+      user: "{{ env_var('CLICKHOUSE_USER') }}"
+      password: "{{ env_var('CLICKHOUSE_PASS') }}"
+      database: "{{ env_var('CLICKHOUSE_DB') }}"
