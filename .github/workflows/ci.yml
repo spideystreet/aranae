@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  python-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort pytest
+          
+      - name: Check formatting
+        run: |
+          black --check .
+          isort --check .
+
+  dbt-tests:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/dbt-labs/dbt-clickhouse:1.7.3
+    
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:latest
+        ports:
+          - 8123:8123
+          - 9000:9000
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install dbt dependencies
+        working-directory: ./dbt
+        run: dbt deps --profiles-dir .
+        
+      - name: Check dbt project
+        working-directory: ./dbt
+        run: |
+          dbt debug --profiles-dir .
+          dbt compile --profiles-dir .
+        env:
+          DBT_PROFILES_DIR: .
+          CLICKHOUSE_HOST: clickhouse
+          CLICKHOUSE_PORT: 8123
+          CLICKHOUSE_USER: default
+          CLICKHOUSE_PASS: ""
+          CLICKHOUSE_DB: default
