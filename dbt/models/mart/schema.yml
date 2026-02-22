@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: fct_jobs
+    description: "Consolidated job postings with auto-generated tags"
+    columns:
+      - name: job_id
+        description: "Unique identifier for the job posting"
+      - name: title
+        description: "Job title"
+      - name: tags
+        description: "Auto-generated tags based on title, description and skills"
+        tests:
+          - not_null
+      - name: skills
+        description: "Required skills for the position"
+      - name: description
+        description: "Full job description"

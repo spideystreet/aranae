@@ -10,6 +10,13 @@ unioned as (
     select * from freework
     union all
     select * from wttj
+),
+
+enriched as (
+    select 
+        *,
+        {{ generate_job_tags('title', 'description', 'skills') }} as tags
+    from unioned
 )
 
-select * from unioned
+select * from enriched
