@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: int_jobs
+    description: "Intermediate jobs model with deduplication logic"
+    columns:
+      - name: job_id
+        description: "Primary key for job postings"
+        tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Job title"
+        tests:
+          - not_null
+      - name: company
+        description: "Company name"
+        tests:
+          - not_null
+      - name: publication_date
+        description: "Date when the job was published"
+        tests:
+          - not_null
+      - name: days_since_publication
+        description: "Number of days since job was published"
+        tests:
+          - not_null
