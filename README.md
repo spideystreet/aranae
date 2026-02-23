@@ -1,4 +1,4 @@
-# Aranae
+# ARANAE 🕷️
 
 <div align="center">
 
@@ -18,6 +18,9 @@
 
 </div>
 ---
+
+<img width="1406" height="503" alt="Capture d’écran 2026-02-23 à 23 21 26" src="https://github.com/user-attachments/assets/c8846f0c-6c98-42fc-a9f9-c85b162a2ac4" />
+<img width="1340" height="644" alt="Capture d’écran 2026-02-23 à 23 20 12" src="https://github.com/user-attachments/assets/467ad527-73d0-4400-acc6-5db4a4516172" />
 
 ## ⚡ The missing Job Analytics Tool
 
