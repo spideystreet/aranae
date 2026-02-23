@@ -1,78 +1,32 @@
-# 🕷️ Aranae
+# Aranae
 
-> **Job market intelligence, fully automated.**
-> Scrape → normalize → visualize. No manual work.
+<div align="center">
 
-```
-┌─────────────┐     ┌───────────┐     ┌─────┐     ┌───────────┐
-│  Scrapers   │ ──▶ │  Raw DB   │ ──▶ │ dbt │ ──▶ │ Dashboard │
-│ FW · WTTJ  │     │ Postgres  │     │ ELT │     │   Dash    │
-└─────────────┘     └───────────┘     └─────┘     └───────────┘
-       ▲                                                 │
-       └──────────────── Dagster (daily) ────────────────┘
+```text
+              _   ___    _   _  _    _   ___      ||  ||  
+             /_\ | _ \  /_\ | \| |  /_\ | __|     \\()//  
+            / _ \|   / / _ \| .` | / _ \| _|     //(__)\\ 
+           /_/ \_\_|_\/_/ \_\_|\_|/_/ \_\___|    ||    || 
 ```
 
-![Charts](docs/screenshots/charts.png)
-![Table](docs/screenshots/table.png)
+**Stop guessing your market value.**  
+*We scrape the tech job market so you don't have to.*
 
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![dbt](https://img.shields.io/badge/dbt-analytics--engine-FF694B.svg)](https://www.getdbt.com/)
+[![Dash](https://img.shields.io/badge/Dash-by_Plotly-008080.svg)](https://dash.plotly.com/)
+
+</div>
 ---
 
-## What it does
+## ⚡ The missing Job Analytics Tool
 
-- **Scrapes** job listings from Free-Work & Welcome to the Jungle
-- **Normalizes** salary, TJM, experience, remote policy, location via dbt macros
-- **Unifies** all sources into a single `fct_jobs` mart
-- **Exposes** a dark-mode analytics dashboard — KPIs, trends, top cities, experience & remote breakdowns
+Freelancers and tech talents waste hours scrolling through job boards to figure out the right TJM or salary. 
 
-## Stack
+**Aranae automates your market intelligence:**
 
-`Python 3.13` · `PostgreSQL` · `dbt-core` · `Dagster` · `Dash` · `Pydantic`
+1. 🕷️ **Scrape**: Pulls thousands of real-time offers from top platforms (Free-Work, Welcome to the Jungle, etc.).
+2. 🧠 **Clean**: Uses strictly `dbt` to normalize messy, inconsistent data (salaries, remote policies) into a single source of truth.
+3. 📊 **Visualize**: A slick, dark-mode dashboard instantly reveals the highest-paying skills, top hiring cities, and market trends.
 
----
-
-## Quick start
-
-```bash
-# 1. Environment
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-# 2. Start DB
-docker compose up -d
-
-# 3. Init tables (first run)
-dotenv run -- python scripts/setup_db.py
-
-# 4. Scrape
-dotenv run -- python scrapers/freework_scraper.py
-dotenv run -- python scrapers/wttj_scraper.py
-
-# 5. Transform
-dotenv run -- dbt run --project-dir dbt --profiles-dir dbt
-
-# 6. Dashboard
-dotenv run -- streamlit run dashboard.py
-```
-
-Or run everything via Dagster:
-
-```bash
-dotenv run -- dagster dev
-```
-
----
-
-## Project layout
-
-```
-scrapers/      per-source scrapers
-services/      ingestor + DB connection
-models/        Pydantic schemas
-dbt/
-  macros/      normalize_date, extract_income, categorize_experience, normalize_city…
-  models/
-    source/    stg_freework_jobs, stg_wttj_jobs  ← all transforms here
-    mart/      fct_jobs                           ← union only
-dagster_app/   assets + schedule
-dashboard.py   Dash app
-```
+**Know your worth. Automatically.**
