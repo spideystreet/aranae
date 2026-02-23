@@ -1,5 +1,3 @@
-import re
-
 import dash
 import dash_ag_grid as dag
 import dash_mantine_components as dmc
