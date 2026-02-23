@@ -1,13 +1,13 @@
-import os
 import sys
-from typing import List, Dict
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from models.schemas import JobSchema
 from services.db import get_db_connection
 
-# Allow importing from project root for models
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.schemas import JobSchema
 
-def ingest_jobs(jobs: List[Dict], table_name: str = "raw_jobs"):
+def ingest_jobs(jobs: list[dict], table_name: str = "raw_jobs"):
     """
     Inserts a list of job dictionaries into the database using Pydantic validation.
     The table_name should typically be RAW_FREEWORK or RAW_WTTJ.

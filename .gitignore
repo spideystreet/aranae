@@ -207,6 +207,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# MCP config (contains credentials)
+.mcp.json
+
 # Scripts
 scripts/
 

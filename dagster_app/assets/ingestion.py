@@ -1,7 +1,7 @@
-
-from scrapers.freework import fetch_jobs, CUSTOM_URL
 import pandas as pd
 from dagster import asset
+from scrapers.freework import CUSTOM_URL, fetch_jobs
+
 
 @asset(group_name="ingestion", compute_kind="python")
 def raw_freework_jobs() -> pd.DataFrame:
@@ -18,21 +18,35 @@ def raw_freework_jobs() -> pd.DataFrame:
         if not jobs:
             break
         all_jobs.extend(jobs)
-    
+
     df = pd.DataFrame(all_jobs)
-    
+
     # Ensure columns exist even if empty
-    expected_cols = ["job_id", "title", "company", "publication_date", "contracts", "skills", 
-                     "duration", "experience_level", "income", "location", "description", "start_date", "url", "source"]
-    
+    expected_cols = [
+        "job_id",
+        "title",
+        "company",
+        "publication_date",
+        "contracts",
+        "skills",
+        "duration",
+        "experience_level",
+        "income",
+        "location",
+        "description",
+        "start_date",
+        "url",
+        "source",
+    ]
+
     for col in expected_cols:
         if col not in df.columns:
             df[col] = None
-    
-    df['contracts'] = df['contracts'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
-    df['skills'] = df['skills'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
-    
+
+    df["contracts"] = df["contracts"].apply(lambda x: ", ".join(x) if isinstance(x, list) else x)
+    df["skills"] = df["skills"].apply(lambda x: ", ".join(x) if isinstance(x, list) else x)
+
     # Add ingestion timestamp
-    df['scraped_at'] = pd.Timestamp.now()
-    
+    df["scraped_at"] = pd.Timestamp.now()
+
     return df

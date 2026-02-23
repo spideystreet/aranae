@@ -1,8 +1,10 @@
 import os
+
 import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def get_db_connection():
     """Returns a connection to the PostgreSQL database"""
@@ -12,7 +14,7 @@ def get_db_connection():
             port=os.getenv("POSTGRES_PORT"),
             user=os.getenv("POSTGRES_USER"),
             password=os.getenv("POSTGRES_PASSWORD"),
-            database=os.getenv("POSTGRES_DB")
+            database=os.getenv("POSTGRES_DB"),
         )
         return conn
     except Exception as e:

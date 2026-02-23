@@ -1,6 +1,7 @@
-from dagster import Definitions, load_assets_from_modules, ScheduleDefinition, define_asset_job
+from dagster import Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
+
 from dagster_app.assets import dbt, ingestion
-from dagster_app.resources import postgres_io_manager, dbt_resource
+from dagster_app.resources import dbt_resource, postgres_io_manager
 
 dbt_assets = load_assets_from_modules([dbt])
 ingestion_assets = load_assets_from_modules([ingestion])
