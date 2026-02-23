@@ -7,6 +7,17 @@ on:
     branches: ["main"]
 
 jobs:
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   lint-python:
     name: Lint Python (ruff)
     runs-on: ubuntu-latest
@@ -15,7 +26,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install ruff
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-ruff-0.15.2
+      - run: pip install ruff==0.15.2
       - run: ruff check .
       - run: ruff format --check .
 
@@ -27,7 +42,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: pip install sqlfluff
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-sqlfluff-4.0.4
+      - run: pip install sqlfluff==4.0.4
       - run: sqlfluff lint dbt/models --dialect postgres
 
   dbt-parse:
@@ -38,8 +57,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-dbt-postgres-1.10.0
       - name: Install dbt
-        run: pip install dbt-postgres
+        run: pip install dbt-postgres==1.10.0
       - name: Write CI profiles
         run: |
           mkdir -p /tmp/dbt-ci
