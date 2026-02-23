@@ -1,0 +1,8 @@
+
+version: 2
+
+sources:
+  - name: free_work
+    schema: public
+    tables:
+      - name: RAW_FREEWORK
