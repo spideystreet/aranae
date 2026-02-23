@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "feat/**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint-python:
+    name: Lint Python (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  lint-sql:
+    name: Lint SQL (sqlfluff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install sqlfluff
+      - run: sqlfluff lint dbt/models --dialect postgres
+
+  dbt-parse:
+    name: dbt parse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dbt
+        run: pip install dbt-postgres
+      - name: Write CI profiles
+        run: |
+          mkdir -p /tmp/dbt-ci
+          cat > /tmp/dbt-ci/profiles.yml <<'EOF'
+          aranae_dbt:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: localhost
+                port: 5432
+                user: ci
+                password: ci
+                dbname: ci
+                schema: public
+                threads: 1
+          EOF
+      - name: Parse dbt project
+        run: dbt parse --project-dir dbt --profiles-dir /tmp/dbt-ci
