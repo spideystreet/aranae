@@ -1,0 +1,34 @@
+
+version: 2
+
+models:
+  - name: pvt_freework_jobs
+    description: "Pivot (Mart) model for Free-Work jobs. Ready for analytics."
+    columns:
+      - name: job_id
+        description: "Unique identifier for the job."
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Job title."
+        data_tests:
+          - not_null
+      - name: company
+        description: "Hiring company."
+      - name: publication_date
+        description: "Publication date."
+        data_tests:
+          - not_null
+      - name: city
+        description: "City."
+      - name: skills
+        description: "List of skills required."
+      - name: contracts
+        description: "Contract types."
+      - name: salary
+        description: "Annual salary if available."
+      - name: tjm
+        description: "Daily rate if available."
+      - name: description
+        description: "Full job description."

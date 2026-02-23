@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aranae_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aranae_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aranae_password}
+      POSTGRES_DB: ${POSTGRES_DB:-aranae_db}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
