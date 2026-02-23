@@ -3,6 +3,14 @@ CASE
     -- Business districts: not standalone cities, map to their parent city
     WHEN {{ city_column }} = 'La Défense'   THEN 'Paris'
 
+    -- Region names captured instead of a city (scraping fallback) → discard
+    WHEN {{ city_column }} IN (
+        'Île-de-France', 'Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté',
+        'Bretagne', 'Centre-Val de Loire', 'Corse', 'Grand Est',
+        'Hauts-de-France', 'Normandie', 'Nouvelle-Aquitaine', 'Occitanie',
+        'Pays de la Loire', 'Provence-Alpes-Côte d''Azur'
+    ) THEN NULL
+
     -- Department names captured instead of a city (scraping fallback) → discard
     WHEN {{ city_column }} IN (
         'Ain', 'Aisne', 'Allier', 'Alpes-de-Haute-Provence', 'Hautes-Alpes',
