@@ -9,7 +9,7 @@ final as (
         title,
         company,
         {{ normalize_date('publication_date') }} as publication_date,
-        city,
+        {{ normalize_city('city') }} as city,
         region,
         location as raw_location,
         url,
@@ -27,7 +27,7 @@ final as (
         {{ extract_income('income', 'salary') }} as salary,
         {{ extract_income('income', 'tjm') }} as tjm,
         duration,
-        experience_level,
+        {{ categorize_experience('experience_level') }} as experience_level,
         start_date,
         -- mapping freework remote naming conventions ('%%' escapes literal '%' in LIKE)
         case
