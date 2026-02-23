@@ -1,0 +1,42 @@
+with source as (
+    select * from {{ source('free_work', 'RAW_FREEWORK') }}
+    where source = 'free-work'
+),
+
+final as (
+    select
+        job_id,
+        title,
+        company,
+        {{ normalize_date('publication_date') }} as publication_date,
+        city,
+        region,
+        location as raw_location,
+        url,
+        skills,
+        -- Sort contract values alphabetically so "CDI, Freelance" and "Freelance, CDI" are treated as the same
+        array_to_string(
+            ARRAY(SELECT unnest(string_to_array(contracts, ', ')) ORDER BY 1),
+            ', '
+        ) as contracts,
+        description,
+        income as raw_income,
+        {{ extract_income('income', 'salary') }} as salary,
+        {{ extract_income('income', 'tjm') }} as tjm,
+        duration,
+        experience_level,
+        start_date,
+        -- mapping freework remote naming conventions ('%%' escapes literal '%' in LIKE)
+        CASE
+            WHEN lower(remote) LIKE '%100%%' OR lower(remote) LIKE '%total%' THEN 'Télétravail 100%'
+            WHEN lower(remote) LIKE '%télétravail%' OR lower(remote) LIKE '%remote%' THEN 'Télétravail partiel'
+            ELSE 'Pas d''infos'
+        END as remote,
+        source,
+        scraped_at
+    from source
+)
+
+select * from final
+where publication_date is not null
+  and title is not null

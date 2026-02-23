@@ -1,0 +1,53 @@
+
+version: 2
+
+models:
+  - name: stg_freework_jobs
+    description: "Staging model for Free-Work jobs. Performs data cleaning, date normalization, and deduplication."
+    columns:
+      - name: job_id
+        description: "Unique identifier for the job."
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Job title."
+        data_tests:
+          - not_null
+      - name: company
+        description: "Hiring company."
+      - name: publication_date
+        description: "Normalized publication date (YYYY-MM-DD)."
+        data_tests:
+          - not_null
+      - name: city
+        description: "Extracted city from location."
+      - name: raw_location
+        description: "Original location string."
+      - name: url
+        description: "URL to the job offer."
+        data_tests:
+          - not_null
+      - name: raw_income
+        description: "Original income string from source."
+      - name: salary
+        description: "Extracted salary (annual)."
+      - name: tjm
+        description: "Extracted TJM (daily rate)."
+      - name: remote
+        description: "Normalized remote work type."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Télétravail 100%", "Télétravail partiel", "Présentiel", "Pas d''infos"]
+      - name: source
+        description: "Data source identifier."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["free-work"]
+      - name: scraped_at
+        description: "Timestamp when the job was scraped."
+        data_tests:
+          - not_null
