@@ -2,8 +2,8 @@
 version: 2
 
 models:
-  - name: stg_freework_jobs
-    description: "Staging model for Free-Work jobs. Performs data cleaning, date normalization, and deduplication."
+  - name: stg_wttj_jobs
+    description: "Staging model for Welcome to the Jungle jobs. Performs data cleaning, date normalization, and contract mapping."
     columns:
       - name: job_id
         description: "Unique identifier for the job."
@@ -21,7 +21,9 @@ models:
         tests:
           - not_null
       - name: city
-        description: "Extracted city from location."
+        description: "City extracted from source."
+      - name: region
+        description: "Region extracted from source."
       - name: raw_location
         description: "Original location string."
       - name: url
@@ -39,12 +41,14 @@ models:
         tests:
           - accepted_values:
               values: ["Télétravail 100%", "Télétravail partiel", "Présentiel", "Pas d''infos"]
+      - name: contracts
+        description: "Normalized contract type."
       - name: source
         description: "Data source identifier."
         tests:
           - not_null
           - accepted_values:
-              values: ["free-work"]
+              values: ["wttj"]
       - name: scraped_at
         description: "Timestamp when the job was scraped."
         tests:

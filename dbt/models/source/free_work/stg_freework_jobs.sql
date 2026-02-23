@@ -22,8 +22,8 @@ final as (
         duration,
         experience_level,
         start_date,
-        -- mapping freework remote naming conventions
-        CASE 
+        -- mapping freework remote naming conventions ('%%' escapes literal '%' in LIKE)
+        CASE
             WHEN lower(remote) LIKE '%100%%' OR lower(remote) LIKE '%total%' THEN 'Télétravail 100%'
             WHEN lower(remote) LIKE '%télétravail%' OR lower(remote) LIKE '%remote%' THEN 'Télétravail partiel'
             ELSE 'Pas d''infos'
@@ -35,3 +35,4 @@ final as (
 
 select * from final
 where publication_date is not null
+  and title is not null
