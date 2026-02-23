@@ -50,3 +50,4 @@ final as (
 
 select * from final
 where publication_date is not null
+  and title is not null
