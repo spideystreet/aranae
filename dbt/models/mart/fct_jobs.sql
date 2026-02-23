@@ -12,4 +12,23 @@ unioned as (
     select * from wttj
 )
 
-select * from unioned
+select
+    job_id,
+    title,
+    company,
+    publication_date,
+    city,
+    region,
+    url,
+    skills,
+    contracts,
+    description,
+    salary,
+    tjm,
+    duration,
+    {{ categorize_experience('experience_level') }} as experience_level,
+    start_date,
+    remote,
+    source,
+    scraped_at
+from unioned
