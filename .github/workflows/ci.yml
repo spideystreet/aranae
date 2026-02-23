@@ -34,6 +34,21 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
 
+  test-python:
+    name: Unit tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-pytest-9.0.2
+      - run: pip install pytest==9.0.2 pydantic
+      - run: pytest
+
   lint-sql:
     name: Lint SQL (sqlfluff)
     runs-on: ubuntu-latest

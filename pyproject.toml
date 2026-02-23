@@ -30,6 +30,9 @@ dependencies = [
 [tool.setuptools]
 packages = ["scrapers", "dagster_app"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.ruff]
 target-version = "py313"
 line-length = 100
@@ -41,6 +44,7 @@ select = ["E", "F", "I", "UP", "PTH", "BLE"]
 [tool.ruff.lint.per-file-ignores]
 "scripts/**" = ["T201", "INP001", "BLE001"]
 "**/__init__.py" = ["I001", "F401"]
+"tests/**" = ["E501"]
 "scrapers/**" = ["T201", "BLE001", "E501"]
 "services/**" = ["T201", "BLE001", "E501"]
 "dashboard.py" = ["BLE001", "E501"]
