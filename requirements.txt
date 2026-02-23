@@ -13,5 +13,7 @@ langchain-ollama
 langchain-core
 psycopg2-binary
 langchainhub
-streamlit
+dash
+dash-ag-grid
+dash-mantine-components
 plotly

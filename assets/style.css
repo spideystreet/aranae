@@ -1,0 +1,58 @@
+/* ── AG Grid — aligned with Mantine dark[4/6/7] palette ─────────────────── */
+.ag-theme-quartz-dark {
+  --ag-background-color:           transparent;
+  --ag-odd-row-background-color:   transparent;
+  --ag-even-row-background-color:  transparent;
+  --ag-row-hover-color:            rgba(99, 102, 241, 0.07);
+  --ag-border-color:               #27272a;
+  --ag-row-border-color:           #27272a;
+  --ag-foreground-color:           #e4e4e7;
+  --ag-secondary-foreground-color: #71717a;
+  --ag-font-family:                Inter, sans-serif;
+  --ag-font-size:                  13px;
+  --ag-header-background-color:    transparent;
+  --ag-header-foreground-color:    #71717a;
+  --ag-selected-row-background-color: rgba(99, 102, 241, 0.1);
+  --ag-range-selection-border-color:  #6366f1;
+  --ag-input-focus-border-color:      #6366f1;
+  --ag-checkbox-checked-color:        #6366f1;
+}
+
+.ag-theme-quartz-dark .ag-header-cell-text {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ag-theme-quartz-dark .ag-paging-panel {
+  border-top: 1px solid #27272a;
+  color: #71717a;
+  font-size: 12px;
+}
+
+/* Source icon */
+.ag-theme-quartz-dark img {
+  height: 20px;
+  width: auto;
+  border-radius: 4px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+/* Links */
+.ag-theme-quartz-dark a {
+  color: #818cf8;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.ag-theme-quartz-dark a:hover {
+  text-decoration: underline;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 5px; height: 5px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #27272a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
