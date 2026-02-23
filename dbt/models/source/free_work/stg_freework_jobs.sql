@@ -14,7 +14,11 @@ final as (
         location as raw_location,
         url,
         skills,
-        contracts,
+        -- Sort contract values alphabetically so "CDI, Freelance" and "Freelance, CDI" are treated as the same
+        array_to_string(
+            ARRAY(SELECT unnest(string_to_array(contracts, ', ')) ORDER BY 1),
+            ', '
+        ) as contracts,
         description,
         income as raw_income,
         {{ extract_income('income', 'salary') }} as salary,

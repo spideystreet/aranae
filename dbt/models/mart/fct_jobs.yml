@@ -1,0 +1,47 @@
+
+version: 2
+
+models:
+  - name: fct_jobs
+    description: "Unified mart table combining all job sources. Read by the Streamlit dashboard."
+    columns:
+      - name: job_id
+        description: "Source-specific unique job identifier."
+        data_tests:
+          - unique
+          - not_null
+      - name: title
+        description: "Job title."
+        data_tests:
+          - not_null
+      - name: company
+        description: "Hiring company."
+      - name: publication_date
+        description: "Normalized publication date (YYYY-MM-DD)."
+        data_tests:
+          - not_null
+      - name: url
+        description: "URL to the job offer."
+        data_tests:
+          - not_null
+      - name: contracts
+        description: "Contract type(s). Comma-separated for freework (e.g. 'Freelance,CDI'), single value for wttj."
+      - name: salary
+        description: "Annual salary if available."
+      - name: tjm
+        description: "Daily rate (TJM) if available."
+      - name: remote
+        description: "Normalized remote work type."
+      - name: experience_level
+        description: "Normalized experience level."
+      - name: source
+        description: "Data source identifier."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["free-work", "wttj"]
+      - name: scraped_at
+        description: "Timestamp when the job was scraped."
+        data_tests:
+          - not_null
