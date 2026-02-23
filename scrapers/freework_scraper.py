@@ -123,7 +123,7 @@ def fetch_jobs(page: int = 1, url: str = FREEWORK_BASE_URL) -> list[dict]:
     print(f"Fetching {target_url}...")
 
     try:
-        response = requests.get(url, headers=get_headers(), timeout=10)
+        response = requests.get(target_url, headers=get_headers(), timeout=10)
         response.raise_for_status()
     except requests.RequestException as e:
         print(f"Error fetching page {page}: {e}")

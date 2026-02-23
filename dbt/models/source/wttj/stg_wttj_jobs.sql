@@ -26,7 +26,7 @@ final as (
         -- WTTJ rarely has TJM in the income field the way Freework does
         NULL as tjm,
         duration,
-        {{ normalize_experience('experience_level') }},
+        {{ normalize_experience('experience_level') }} as experience_level,
         start_date,
         -- MAPPING WTTJ REMOTE (RAW -> STANDARD)
         source,
