@@ -25,6 +25,7 @@ def load_data() -> pd.DataFrame:
             j.tjm,
             j.duration,
             j.experience_level,
+            j.remote,
             j.url       AS offer_url,
             m.icon_url  AS source
         FROM fct_jobs j
