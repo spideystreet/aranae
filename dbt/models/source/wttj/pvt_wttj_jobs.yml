@@ -2,8 +2,8 @@
 version: 2
 
 models:
-  - name: pvt_freework_jobs
-    description: "Pivot (Mart) model for Free-Work jobs. Ready for analytics."
+  - name: pvt_wttj_jobs
+    description: "Pivot (Mart) model for Welcome to the Jungle jobs. Ready for analytics."
     columns:
       - name: job_id
         description: "Unique identifier for the job."
@@ -22,13 +22,25 @@ models:
           - not_null
       - name: city
         description: "City."
+      - name: region
+        description: "Region."
+      - name: url
+        description: "URL to the job offer."
       - name: skills
         description: "List of skills required."
       - name: contracts
-        description: "Contract types."
+        description: "Contract type."
       - name: salary
         description: "Annual salary if available."
       - name: tjm
         description: "Daily rate if available."
       - name: description
         description: "Full job description."
+      - name: experience_level
+        description: "Normalized experience level."
+      - name: remote
+        description: "Remote work type."
+      - name: source
+        description: "Data source identifier."
+      - name: scraped_at
+        description: "Timestamp when the job was scraped."
