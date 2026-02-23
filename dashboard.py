@@ -9,6 +9,7 @@ from services.db import get_db_connection
 
 load_dotenv()
 
+
 # ── Data (loaded once at startup) ────────────────────────────────────────────
 def load_data() -> pd.DataFrame:
     conn = get_db_connection()
@@ -360,10 +361,22 @@ app.layout = dmc.MantineProvider(
                                                 "minWidth": 120,
                                             },
                                             {"field": "city", "headerName": "City", "width": 120},
-                                            {"field": "region", "headerName": "Region", "width": 130},
-                                            {"field": "salary", "headerName": "Salary", "width": 120},
+                                            {
+                                                "field": "region",
+                                                "headerName": "Region",
+                                                "width": 130,
+                                            },
+                                            {
+                                                "field": "salary",
+                                                "headerName": "Salary",
+                                                "width": 120,
+                                            },
                                             {"field": "tjm", "headerName": "TJM", "width": 90},
-                                            {"field": "duration", "headerName": "Duration", "width": 120},
+                                            {
+                                                "field": "duration",
+                                                "headerName": "Duration",
+                                                "width": 120,
+                                            },
                                             {
                                                 "field": "publication_date",
                                                 "headerName": "Date",
@@ -428,9 +441,7 @@ def update(
         flt = flt[flt["remote"].isin(selected_remote)]
 
     # ── KPIs ─────────────────────────────────────────────────────────────────
-    tjm_nums = (
-        flt["tjm"].dropna().astype(str).str.extract(r"(\d+)")[0].dropna().astype(float)
-    )
+    tjm_nums = flt["tjm"].dropna().astype(str).str.extract(r"(\d+)")[0].dropna().astype(float)
     avg_tjm = f"{int(tjm_nums.mean())} €" if not tjm_nums.empty else "N/A"
 
     kpis = [
@@ -468,9 +479,7 @@ def update(
     city_counts.columns = ["city", "count"]
 
     # ── Experience level donut ────────────────────────────────────────────────
-    exp_counts = (
-        flt["experience_level"].dropna().value_counts().reset_index()
-    )
+    exp_counts = flt["experience_level"].dropna().value_counts().reset_index()
     exp_counts.columns = ["name", "value"]
     total_exp = int(exp_counts["value"].sum())
 
@@ -484,30 +493,34 @@ def update(
     ]
 
     # Custom legend: colored dot + name + percentage
-    exp_legend = [
-        dmc.Group(
-            [
-                dmc.Box(
-                    style={
-                        "width": 8,
-                        "height": 8,
-                        "borderRadius": "50%",
-                        "backgroundColor": f"var(--mantine-color-{item['color'].replace('.', '-')})",
-                        "flexShrink": 0,
-                    }
-                ),
-                dmc.Text(item["name"], size="xs", c="dimmed", style={"flex": 1}),
-                dmc.Text(
-                    f"{item['value'] / total_exp:.0%}" if total_exp else "—",
-                    size="xs",
-                    fw=500,
-                ),
-            ],
-            gap="xs",
-            wrap="nowrap",
-        )
-        for item in exp_data
-    ] if exp_data else []
+    exp_legend = (
+        [
+            dmc.Group(
+                [
+                    dmc.Box(
+                        style={
+                            "width": 8,
+                            "height": 8,
+                            "borderRadius": "50%",
+                            "backgroundColor": f"var(--mantine-color-{item['color'].replace('.', '-')})",
+                            "flexShrink": 0,
+                        }
+                    ),
+                    dmc.Text(item["name"], size="xs", c="dimmed", style={"flex": 1}),
+                    dmc.Text(
+                        f"{item['value'] / total_exp:.0%}" if total_exp else "—",
+                        size="xs",
+                        fw=500,
+                    ),
+                ],
+                gap="xs",
+                wrap="nowrap",
+            )
+            for item in exp_data
+        ]
+        if exp_data
+        else []
+    )
 
     # DonutChart center label: dominant level
     chart_label = exp_data[0]["name"] if exp_data else ""
@@ -526,36 +539,49 @@ def update(
         for _, row in remote_counts.iterrows()
     ]
 
-    remote_legend = [
-        dmc.Group(
-            [
-                dmc.Box(
-                    style={
-                        "width": 8,
-                        "height": 8,
-                        "borderRadius": "50%",
-                        "backgroundColor": f"var(--mantine-color-{item['color'].replace('.', '-')})",
-                        "flexShrink": 0,
-                    }
-                ),
-                dmc.Text(item["name"], size="xs", c="dimmed", style={"flex": 1}),
-                dmc.Text(
-                    f"{item['value'] / total_remote:.0%}" if total_remote else "—",
-                    size="xs",
-                    fw=500,
-                ),
-            ],
-            gap="xs",
-            wrap="nowrap",
-        )
-        for item in remote_data
-    ] if remote_data else []
+    remote_legend = (
+        [
+            dmc.Group(
+                [
+                    dmc.Box(
+                        style={
+                            "width": 8,
+                            "height": 8,
+                            "borderRadius": "50%",
+                            "backgroundColor": f"var(--mantine-color-{item['color'].replace('.', '-')})",
+                            "flexShrink": 0,
+                        }
+                    ),
+                    dmc.Text(item["name"], size="xs", c="dimmed", style={"flex": 1}),
+                    dmc.Text(
+                        f"{item['value'] / total_remote:.0%}" if total_remote else "—",
+                        size="xs",
+                        fw=500,
+                    ),
+                ],
+                gap="xs",
+                wrap="nowrap",
+            )
+            for item in remote_data
+        ]
+        if remote_data
+        else []
+    )
 
     # ── Table ────────────────────────────────────────────────────────────────
     display = flt[
         [
-            "source", "publication_date", "title", "company", "city", "region",
-            "salary", "tjm", "duration", "experience_level", "offer_url",
+            "source",
+            "publication_date",
+            "title",
+            "company",
+            "city",
+            "region",
+            "salary",
+            "tjm",
+            "duration",
+            "experience_level",
+            "offer_url",
         ]
     ].copy()
     display["source"] = display["source"].apply(
