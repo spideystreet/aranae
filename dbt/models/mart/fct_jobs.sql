@@ -17,7 +17,7 @@ select
     title,
     company,
     publication_date,
-    city,
+    {{ normalize_city('city') }} as city,
     region,
     url,
     skills,
