@@ -113,14 +113,10 @@ def section_label(text: str) -> dmc.Text:
     )
 
 
-def _duration_sort_key(d: str) -> int:
-    """Numeric sort key for duration strings (e.g. '3 mois' → 3)."""
-    m = re.search(r"(\d+)", str(d))
-    return int(m.group(1)) if m else 9999
-
-
 # ── Layout ───────────────────────────────────────────────────────────────────
 city_options = sorted(df["city"].dropna().unique())
+exp_options = sorted(df["experience_level"].dropna().unique())
+remote_options = sorted(df["remote"].dropna().unique())
 
 app.layout = dmc.MantineProvider(
     theme=THEME,
@@ -133,7 +129,7 @@ app.layout = dmc.MantineProvider(
                     [
                         dmc.Group(
                             [
-                                dmc.Text("🕸️", size="xl"),
+                                dmc.Text("🕷️", size="xl"),
                                 dmc.Title("Aranae", order=5, fw=600, lts="-0.02em"),
                             ],
                             gap="xs",
@@ -152,14 +148,37 @@ app.layout = dmc.MantineProvider(
                     dmc.Stack(
                         [
                             # Filters
-                            dmc.MultiSelect(
-                                id="city-filter",
-                                data=city_options,
-                                placeholder="Filter by city…",
-                                searchable=True,
-                                clearable=True,
-                                w=380,
-                                size="sm",
+                            dmc.Group(
+                                [
+                                    dmc.MultiSelect(
+                                        id="city-filter",
+                                        data=city_options,
+                                        placeholder="Filter by city…",
+                                        searchable=True,
+                                        clearable=True,
+                                        w=280,
+                                        size="sm",
+                                    ),
+                                    dmc.MultiSelect(
+                                        id="experience-filter",
+                                        data=exp_options,
+                                        placeholder="Filter by experience…",
+                                        searchable=True,
+                                        clearable=True,
+                                        w=280,
+                                        size="sm",
+                                    ),
+                                    dmc.MultiSelect(
+                                        id="remote-filter",
+                                        data=remote_options,
+                                        placeholder="Filter by remote…",
+                                        searchable=True,
+                                        clearable=True,
+                                        w=280,
+                                        size="sm",
+                                    ),
+                                ],
+                                gap="md",
                             ),
                             # KPI cards
                             dmc.Grid(id="kpi-grid", gutter="md"),
@@ -231,105 +250,73 @@ app.layout = dmc.MantineProvider(
                                             p="xl",
                                             radius="md",
                                         ),
-                                        span=5,
+                                        span=6,
                                     ),
-                                    # Experience + Remote donuts stacked
-                                    dmc.GridCol(
-                                        dmc.Stack(
-                                            [
-                                                # Experience level
-                                                dmc.Paper(
-                                                    [
-                                                        section_label("Expérience"),
-                                                        dmc.Center(
-                                                            dmc.DonutChart(
-                                                                id="experience-chart",
-                                                                data=[],
-                                                                h=170,
-                                                                size="110",
-                                                                thickness=22,
-                                                                paddingAngle=2,
-                                                                strokeWidth=0,
-                                                                withTooltip=True,
-                                                                tooltipAnimationDuration=150,
-                                                                withLabels=False,
-                                                            ),
-                                                            mt="xs",
-                                                        ),
-                                                        dmc.Stack(
-                                                            id="experience-legend",
-                                                            gap=4,
-                                                            mt="sm",
-                                                        ),
-                                                    ],
-                                                    withBorder=True,
-                                                    p="lg",
-                                                    radius="md",
-                                                ),
-                                                # Remote distribution
-                                                dmc.Paper(
-                                                    [
-                                                        section_label("Télétravail"),
-                                                        dmc.Center(
-                                                            dmc.DonutChart(
-                                                                id="remote-chart",
-                                                                data=[],
-                                                                h=170,
-                                                                size="110",
-                                                                thickness=22,
-                                                                paddingAngle=2,
-                                                                strokeWidth=0,
-                                                                withTooltip=True,
-                                                                tooltipAnimationDuration=150,
-                                                                withLabels=False,
-                                                            ),
-                                                            mt="xs",
-                                                        ),
-                                                        dmc.Stack(
-                                                            id="remote-legend",
-                                                            gap=4,
-                                                            mt="sm",
-                                                        ),
-                                                    ],
-                                                    withBorder=True,
-                                                    p="lg",
-                                                    radius="md",
-                                                ),
-                                            ],
-                                            gap="md",
-                                        ),
-                                        span=3,
-                                    ),
-                                    # Duration histogram
+                                    # Experience level
                                     dmc.GridCol(
                                         dmc.Paper(
                                             [
-                                                section_label("Durée de mission"),
-                                                dmc.BarChart(
-                                                    id="duration-chart",
-                                                    data=[],
-                                                    dataKey="duration",
-                                                    series=[
-                                                        {
-                                                            "name": "count",
-                                                            "color": "violet.5",
-                                                        }
-                                                    ],
-                                                    h=280,
-                                                    orientation="horizontal",
-                                                    barProps={"radius": [0, 4, 4, 0]},
-                                                    gridAxis="x",
-                                                    tickLine="none",
-                                                    withTooltip=True,
-                                                    tooltipAnimationDuration=150,
-                                                    withLegend=False,
+                                                section_label("Expérience"),
+                                                dmc.Center(
+                                                    dmc.DonutChart(
+                                                        id="experience-chart",
+                                                        data=[],
+                                                        h=170,
+                                                        size="110",
+                                                        thickness=22,
+                                                        paddingAngle=2,
+                                                        strokeWidth=0,
+                                                        withTooltip=True,
+                                                        tooltipAnimationDuration=150,
+                                                        withLabels=False,
+                                                    ),
+                                                    mt="xs",
+                                                ),
+                                                dmc.Stack(
+                                                    id="experience-legend",
+                                                    gap=4,
+                                                    mt="sm",
                                                 ),
                                             ],
                                             withBorder=True,
-                                            p="xl",
+                                            p="lg",
                                             radius="md",
+                                            h="100%",
                                         ),
-                                        span=4,
+                                        span=3,
+                                    ),
+                                    # Remote distribution
+                                    dmc.GridCol(
+                                        dmc.Paper(
+                                            [
+                                                section_label("Télétravail"),
+                                                dmc.Center(
+                                                    dmc.DonutChart(
+                                                        id="remote-chart",
+                                                        data=[],
+                                                        h=170,
+                                                        size="110",
+                                                        thickness=22,
+                                                        paddingAngle=2,
+                                                        strokeWidth=0,
+                                                        withTooltip=True,
+                                                        tooltipAnimationDuration=150,
+                                                        withLabels=False,
+                                                    ),
+                                                    mt="xs",
+                                                ),
+                                                dmc.Stack(
+                                                    id="remote-legend",
+                                                    gap=4,
+                                                    mt="sm",
+                                                ),
+                                            ],
+                                            withBorder=True,
+                                            p="lg",
+                                            radius="md",
+                                            h="100%",
+                                        ),
+                                        span=3,
                                     ),
                                 ],
                                 gutter="md",
@@ -350,9 +337,17 @@ app.layout = dmc.MantineProvider(
                                                 "filter": False,
                                             },
                                             {
-                                                "field": "publication_date",
-                                                "headerName": "Date",
-                                                "width": 120,
+                                                "field": "offer_url",
+                                                "headerName": "Link",
+                                                "width": 90,
+                                                "cellRenderer": "markdown",
+                                                "sortable": False,
+                                                "filter": False,
+                                            },
+                                            {
+                                                "field": "experience_level",
+                                                "headerName": "Level",
+                                                "width": 110,
                                             },
                                             {
                                                 "field": "title",
@@ -372,17 +367,9 @@ app.layout = dmc.MantineProvider(
                                             {"field": "tjm", "headerName": "TJM", "width": 90},
                                             {"field": "duration", "headerName": "Duration", "width": 120},
                                             {
-                                                "field": "experience_level",
-                                                "headerName": "Level",
-                                                "width": 110,
-                                            },
-                                            {
-                                                "field": "offer_url",
-                                                "headerName": "Link",
-                                                "width": 90,
-                                                "cellRenderer": "markdown",
-                                                "sortable": False,
-                                                "filter": False,
+                                                "field": "publication_date",
+                                                "headerName": "Date",
+                                                "width": 120,
                                             },
                                         ],
                                         rowData=[],
@@ -422,16 +409,25 @@ app.layout = dmc.MantineProvider(
     Output("experience-chart", "data"),
     Output("experience-chart", "chartLabel"),
     Output("experience-legend", "children"),
-    Output("duration-chart", "data"),
     Output("remote-chart", "data"),
     Output("remote-legend", "children"),
     Output("jobs-table", "rowData"),
     Input("city-filter", "value"),
+    Input("experience-filter", "value"),
+    Input("remote-filter", "value"),
 )
-def update(selected_cities: list | None):
+def update(
+    selected_cities: list | None,
+    selected_exp: list | None,
+    selected_remote: list | None,
+):
     flt = df.copy()
     if selected_cities:
         flt = flt[flt["city"].isin(selected_cities)]
+    if selected_exp:
+        flt = flt[flt["experience_level"].isin(selected_exp)]
+    if selected_remote:
+        flt = flt[flt["remote"].isin(selected_remote)]
 
     # ── KPIs ─────────────────────────────────────────────────────────────────
     tjm_nums = (
@@ -518,13 +514,6 @@ def update(selected_cities: list | None):
     # DonutChart center label: dominant level
     chart_label = exp_data[0]["name"] if exp_data else ""
 
-    # ── Duration histogram ───────────────────────────────────────────────────
-    dur_counts = flt["duration"].dropna().value_counts().reset_index()
-    dur_counts.columns = ["duration", "count"]
-    dur_counts["sort_key"] = dur_counts["duration"].apply(_duration_sort_key)
-    dur_counts = dur_counts.sort_values("sort_key").head(10)
-    dur_data = dur_counts[["duration", "count"]].to_dict("records")
-
     # ── Remote distribution ──────────────────────────────────────────────────
     remote_counts = flt["remote"].dropna().value_counts().reset_index()
     remote_counts.columns = ["name", "value"]
@@ -585,7 +574,6 @@ def update(selected_cities: list | None):
         exp_data,
         chart_label,
         exp_legend,
-        dur_data,
         remote_data,
         remote_legend,
         display.fillna("").to_dict("records"),
