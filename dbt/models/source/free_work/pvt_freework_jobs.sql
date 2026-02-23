@@ -1,4 +1,4 @@
-select 
+select
     job_id,
     title,
     company,

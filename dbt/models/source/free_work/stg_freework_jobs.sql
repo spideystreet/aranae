@@ -16,7 +16,10 @@ final as (
         skills,
         -- Sort contract values alphabetically so "CDI, Freelance" and "Freelance, CDI" are treated as the same
         array_to_string(
-            ARRAY(SELECT unnest(string_to_array(contracts, ', ')) ORDER BY 1),
+            array(
+                select unnest(string_to_array(contracts, ', '))
+                order by 1
+            ),
             ', '
         ) as contracts,
         description,
@@ -27,16 +30,22 @@ final as (
         experience_level,
         start_date,
         -- mapping freework remote naming conventions ('%%' escapes literal '%' in LIKE)
-        CASE
-            WHEN lower(remote) LIKE '%100%%' OR lower(remote) LIKE '%total%' THEN 'Télétravail 100%'
-            WHEN lower(remote) LIKE '%télétravail%' OR lower(remote) LIKE '%remote%' THEN 'Télétravail partiel'
-            ELSE 'Pas d''infos'
-        END as remote,
+        case
+            when
+                lower(remote) like '%100%%' or lower(remote) like '%total%'
+                then 'Télétravail 100%'
+            when
+                lower(remote) like '%télétravail%'
+                or lower(remote) like '%remote%'
+                then 'Télétravail partiel'
+            else 'Pas d''infos'
+        end as remote,
         source,
         scraped_at
     from source
 )
 
 select * from final
-where publication_date is not null
-  and title is not null
+where
+    publication_date is not null
+    and title is not null

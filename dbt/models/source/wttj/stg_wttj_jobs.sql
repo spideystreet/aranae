@@ -13,7 +13,7 @@ final as (
         -- Use explicit city/region from source
         city,
         region,
-        
+
         location as raw_location,
         url,
         skills,
@@ -23,31 +23,33 @@ final as (
         -- If it contains 'EUR', 'k' or looks like a salary, treat as salary.
         -- TJM is rare on WTTJ but possible.
         {{ format_wttj_salary('income') }} as salary,
-        NULL as tjm, -- WTTJ rarely has TJM in the income field the way Freework does
+        -- WTTJ rarely has TJM in the income field the way Freework does
+        NULL as tjm,
         duration,
-        {{ normalize_experience('experience_level') }} as experience_level,
+        {{ normalize_experience('experience_level') }},
         start_date,
         -- MAPPING WTTJ REMOTE (RAW -> STANDARD)
-        CASE 
-            WHEN remote = 'full' THEN 'Télétravail 100%'
-            WHEN remote IN ('partial', 'punctual') THEN 'Télétravail partiel'
-            WHEN remote = 'no' THEN 'Présentiel'
-            ELSE 'Pas d''infos'
-        END as remote,
-        -- MAPPING WTTJ CONTRACTS (RAW -> STANDARD)
-        CASE 
-            WHEN contracts = 'full_time' THEN 'CDI'
-            WHEN contracts = 'temporary' THEN 'CDD'
-            WHEN contracts = 'apprenticeship' THEN 'Alternance'
-            WHEN contracts = 'internship' THEN 'Stage'
-            WHEN contracts = 'freelance' THEN 'Freelance'
-            ELSE contracts -- Keep raw if unknown
-        END as contracts,
         source,
-        scraped_at
+        -- MAPPING WTTJ CONTRACTS (RAW -> STANDARD)
+        scraped_at,
+        case
+            when remote = 'full' then 'Télétravail 100%'
+            when remote in ('partial', 'punctual') then 'Télétravail partiel'
+            when remote = 'no' then 'Présentiel'
+            else 'Pas d''infos'
+        end as remote,
+        case
+            when contracts = 'full_time' then 'CDI'
+            when contracts = 'temporary' then 'CDD'
+            when contracts = 'apprenticeship' then 'Alternance'
+            when contracts = 'internship' then 'Stage'
+            when contracts = 'freelance' then 'Freelance'
+            else contracts -- Keep raw if unknown
+        end as contracts
     from source
 )
 
 select * from final
-where publication_date is not null
-  and title is not null
+where
+    publication_date is not NULL
+    and title is not NULL
