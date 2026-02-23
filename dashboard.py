@@ -1,131 +1,608 @@
+import dash
+import dash_ag_grid as dag
+import dash_mantine_components as dmc
 import pandas as pd
-import plotly.express as px
-import streamlit as st
+from dash import Input, Output, callback
 from dotenv import load_dotenv
 
 from services.db import get_db_connection
 
-# Load environment variables
 load_dotenv()
 
-# Page configuration
-st.set_page_config(page_title="Aranae - Job Analytics", page_icon="🕸️", layout="wide")
 
-st.title("🕸️ Aranae - Job Analytics")
-st.markdown("---")
-
-
-@st.cache_data(ttl=600)
-def load_data():
+# ── Data (loaded once at startup) ────────────────────────────────────────────
+def load_data() -> pd.DataFrame:
     conn = get_db_connection()
-    # Join with source_metadata to get icons
-    # We select specific columns to avoid duplicate 'source' column names
     query = """
-        SELECT 
-            j.publication_date, 
-            j.title, 
-            j.company, 
-            j.city, 
-            j.region, 
-            j.salary, 
-            j.tjm, 
-            j.duration, 
-            j.experience_level, 
-            j.url as offer_url,
-            m.icon_url as source
+        SELECT
+            j.publication_date,
+            j.title,
+            j.company,
+            j.city,
+            j.region,
+            j.salary,
+            j.tjm,
+            j.duration,
+            j.experience_level,
+            j.remote,
+            j.url       AS offer_url,
+            m.icon_url  AS source
         FROM fct_jobs j
         LEFT JOIN sources_metadatas m ON j.source = m.source_name
     """
-    df = pd.read_sql(query, conn)
-    return df
+    return pd.read_sql(query, conn)
 
 
-try:
-    df = load_data()
+df = load_data()
 
-    # --- Sidebar Filters ---
-    st.sidebar.header("Filter Options")
+# ── Theme ────────────────────────────────────────────────────────────────────
+# dark[4] → borders, dark[6] → Paper bg, dark[7] → body bg
+THEME = {
+    "fontFamily": "Inter, sans-serif",
+    "headings": {"fontFamily": "Inter, sans-serif"},
+    "primaryColor": "indigo",
+    "defaultRadius": "md",
+    "colors": {
+        "dark": [
+            "#e4e4e7",  # 0  text
+            "#a1a1aa",  # 1  dimmed
+            "#71717a",  # 2  more dimmed
+            "#52525b",  # 3
+            "#27272a",  # 4  borders
+            "#1f1f23",  # 5
+            "#111113",  # 6  Paper / component bg
+            "#09090b",  # 7  body bg
+            "#060608",  # 8
+            "#030304",  # 9
+        ]
+    },
+}
 
-    cities = st.sidebar.multiselect(
-        "Select City", options=sorted(df["city"].dropna().unique()), default=[]
+# Donut chart color palettes
+EXP_COLORS = ["indigo.6", "indigo.4", "violet.5", "violet.3", "cyan.5", "teal.4"]
+REMOTE_COLORS = {
+    "Télétravail 100%": "teal.5",
+    "Télétravail partiel": "indigo.5",
+    "Présentiel": "violet.4",
+    "Pas d'infos": "dark.3",
+}
+
+# ── App ──────────────────────────────────────────────────────────────────────
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[
+        "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
+    ],
+    title="Aranae – Job Analytics",
+)
+
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+def kpi_card(value: str, label: str) -> dmc.Paper:
+    return dmc.Paper(
+        dmc.Stack(
+            [
+                dmc.Title(value, order=2, fw=600, lts="-0.04em"),
+                dmc.Text(
+                    label,
+                    c="dimmed",
+                    size="xs",
+                    tt="uppercase",
+                    fw=500,
+                    lts="0.06em",
+                ),
+            ],
+            gap=4,
+        ),
+        withBorder=True,
+        p="xl",
+        radius="md",
     )
 
-    # Filter logic
-    filtered_df = df.copy()
-    if cities:
-        filtered_df = filtered_df[filtered_df["city"].isin(cities)]
 
-    # --- Key Metrics ---
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("Total Offers", len(filtered_df))
-    with col2:
-        st.metric("Companies", filtered_df["company"].nunique())
-    with col3:
-        # Use raw string for regex
-        avg_tjm_series = filtered_df["tjm"].dropna().astype(str).str.extract(r"(\d+)")
-        if not avg_tjm_series.empty:
-            avg_tjm = avg_tjm_series.astype(float).mean()
-            st.metric("Avg TJM (Estimate)", f"{int(avg_tjm.iloc[0])} €")
-        else:
-            st.metric("Avg TJM (Estimate)", "N/A")
-    with col4:
-        st.metric("Cities", filtered_df["city"].nunique())
+def section_label(text: str) -> dmc.Text:
+    return dmc.Text(
+        text,
+        c="dimmed",
+        size="xs",
+        tt="uppercase",
+        fw=600,
+        lts="0.08em",
+        mb="md",
+    )
 
-    st.markdown("---")
 
-    # --- Charts ---
-    c1, c2 = st.columns(2)
+# ── Layout ───────────────────────────────────────────────────────────────────
+city_options = sorted(df["city"].dropna().unique())
+exp_options = sorted(df["experience_level"].dropna().unique())
+remote_options = sorted(df["remote"].dropna().unique())
 
-    with c1:
-        st.subheader("Top Cities")
-        city_counts = filtered_df["city"].value_counts().reset_index()
-        city_counts.columns = ["city", "count"]
-        fig_city = px.bar(
-            city_counts.head(10),
-            x="city",
-            y="count",
-            template="plotly_dark",
-            color="count",
-            color_continuous_scale="Viridis",
-        )
-        st.plotly_chart(fig_city, use_container_width=True)
+app.layout = dmc.MantineProvider(
+    theme=THEME,
+    forceColorScheme="dark",
+    children=dmc.AppShell(
+        [
+            # ── Header ───────────────────────────────────────────────────
+            dmc.AppShellHeader(
+                dmc.Group(
+                    [
+                        dmc.Group(
+                            [
+                                dmc.Text("🕷️", size="xl"),
+                                dmc.Title("Aranae", order=5, fw=600, lts="-0.02em"),
+                            ],
+                            gap="xs",
+                        ),
+                        dmc.Text("Job Analytics", c="dimmed", size="sm"),
+                    ],
+                    justify="space-between",
+                    px="xl",
+                    h="100%",
+                ),
+                withBorder=True,
+            ),
+            # ── Main ─────────────────────────────────────────────────────
+            dmc.AppShellMain(
+                dmc.Container(
+                    dmc.Stack(
+                        [
+                            # Filters
+                            dmc.Group(
+                                [
+                                    dmc.MultiSelect(
+                                        id="city-filter",
+                                        data=city_options,
+                                        placeholder="Filter by city…",
+                                        searchable=True,
+                                        clearable=True,
+                                        w=280,
+                                        size="sm",
+                                    ),
+                                    dmc.MultiSelect(
+                                        id="experience-filter",
+                                        data=exp_options,
+                                        placeholder="Filter by experience…",
+                                        searchable=True,
+                                        clearable=True,
+                                        w=280,
+                                        size="sm",
+                                    ),
+                                    dmc.MultiSelect(
+                                        id="remote-filter",
+                                        data=remote_options,
+                                        placeholder="Filter by remote…",
+                                        searchable=True,
+                                        clearable=True,
+                                        w=280,
+                                        size="sm",
+                                    ),
+                                ],
+                                gap="md",
+                            ),
+                            # KPI cards
+                            dmc.Grid(id="kpi-grid", gutter="md"),
+                            # ── Time series ─────────────────────────────
+                            dmc.Paper(
+                                [
+                                    section_label("Dynamique du marché"),
+                                    dmc.AreaChart(
+                                        id="time-chart",
+                                        data=[],
+                                        dataKey="month",
+                                        series=[
+                                            {"name": "Offres", "color": "indigo.5"},
+                                            {
+                                                "name": "TJM moyen (€)",
+                                                "color": "violet.4",
+                                                "yAxisId": "right",
+                                            },
+                                        ],
+                                        h=260,
+                                        withRightYAxis=True,
+                                        rightYAxisLabel="TJM (€)",
+                                        yAxisLabel="Offres",
+                                        withGradient=True,
+                                        fillOpacity=0.12,
+                                        strokeWidth=2,
+                                        withDots=False,
+                                        curveType="monotone",
+                                        gridAxis="y",
+                                        tickLine="none",
+                                        withTooltip=True,
+                                        tooltipAnimationDuration=150,
+                                        withLegend=True,
+                                        connectNulls=True,
+                                    ),
+                                ],
+                                withBorder=True,
+                                p="xl",
+                                radius="md",
+                            ),
+                            # ── Charts row ──────────────────────────────
+                            dmc.Grid(
+                                [
+                                    # Top cities
+                                    dmc.GridCol(
+                                        dmc.Paper(
+                                            [
+                                                section_label("Top Villes"),
+                                                dmc.BarChart(
+                                                    id="city-chart",
+                                                    data=[],
+                                                    dataKey="city",
+                                                    series=[
+                                                        {
+                                                            "name": "count",
+                                                            "color": "indigo.5",
+                                                        }
+                                                    ],
+                                                    h=280,
+                                                    barProps={"radius": 4},
+                                                    gridAxis="y",
+                                                    tickLine="none",
+                                                    withTooltip=True,
+                                                    tooltipAnimationDuration=150,
+                                                    withLegend=False,
+                                                ),
+                                            ],
+                                            withBorder=True,
+                                            p="xl",
+                                            radius="md",
+                                        ),
+                                        span=6,
+                                    ),
+                                    # Experience level
+                                    dmc.GridCol(
+                                        dmc.Paper(
+                                            [
+                                                section_label("Expérience"),
+                                                dmc.Center(
+                                                    dmc.DonutChart(
+                                                        id="experience-chart",
+                                                        data=[],
+                                                        h=170,
+                                                        size="110",
+                                                        thickness=22,
+                                                        paddingAngle=2,
+                                                        strokeWidth=0,
+                                                        withTooltip=True,
+                                                        tooltipAnimationDuration=150,
+                                                        withLabels=False,
+                                                    ),
+                                                    mt="xs",
+                                                ),
+                                                dmc.Stack(
+                                                    id="experience-legend",
+                                                    gap=4,
+                                                    mt="sm",
+                                                ),
+                                            ],
+                                            withBorder=True,
+                                            p="lg",
+                                            radius="md",
+                                            h="100%",
+                                        ),
+                                        span=3,
+                                    ),
+                                    # Remote distribution
+                                    dmc.GridCol(
+                                        dmc.Paper(
+                                            [
+                                                section_label("Télétravail"),
+                                                dmc.Center(
+                                                    dmc.DonutChart(
+                                                        id="remote-chart",
+                                                        data=[],
+                                                        h=170,
+                                                        size="110",
+                                                        thickness=22,
+                                                        paddingAngle=2,
+                                                        strokeWidth=0,
+                                                        withTooltip=True,
+                                                        tooltipAnimationDuration=150,
+                                                        withLabels=False,
+                                                    ),
+                                                    mt="xs",
+                                                ),
+                                                dmc.Stack(
+                                                    id="remote-legend",
+                                                    gap=4,
+                                                    mt="sm",
+                                                ),
+                                            ],
+                                            withBorder=True,
+                                            p="lg",
+                                            radius="md",
+                                            h="100%",
+                                        ),
+                                        span=3,
+                                    ),
+                                ],
+                                gutter="md",
+                            ),
+                            # ── Table ───────────────────────────────────
+                            dmc.Paper(
+                                [
+                                    section_label("Latest Offers"),
+                                    dag.AgGrid(
+                                        id="jobs-table",
+                                        columnDefs=[
+                                            {
+                                                "field": "source",
+                                                "headerName": "",
+                                                "width": 60,
+                                                "cellRenderer": "markdown",
+                                                "sortable": False,
+                                                "filter": False,
+                                            },
+                                            {
+                                                "field": "offer_url",
+                                                "headerName": "Link",
+                                                "width": 90,
+                                                "cellRenderer": "markdown",
+                                                "sortable": False,
+                                                "filter": False,
+                                            },
+                                            {
+                                                "field": "experience_level",
+                                                "headerName": "Level",
+                                                "width": 110,
+                                            },
+                                            {
+                                                "field": "title",
+                                                "headerName": "Title",
+                                                "flex": 2,
+                                                "minWidth": 200,
+                                            },
+                                            {
+                                                "field": "company",
+                                                "headerName": "Company",
+                                                "flex": 1,
+                                                "minWidth": 120,
+                                            },
+                                            {"field": "city", "headerName": "City", "width": 120},
+                                            {
+                                                "field": "region",
+                                                "headerName": "Region",
+                                                "width": 130,
+                                            },
+                                            {
+                                                "field": "salary",
+                                                "headerName": "Salary",
+                                                "width": 120,
+                                            },
+                                            {"field": "tjm", "headerName": "TJM", "width": 90},
+                                            {
+                                                "field": "duration",
+                                                "headerName": "Duration",
+                                                "width": 120,
+                                            },
+                                            {
+                                                "field": "publication_date",
+                                                "headerName": "Date",
+                                                "width": 120,
+                                            },
+                                        ],
+                                        rowData=[],
+                                        className="ag-theme-quartz-dark",
+                                        style={"height": "480px"},
+                                        dashGridOptions={
+                                            "pagination": True,
+                                            "paginationPageSize": 20,
+                                            "rowHeight": 44,
+                                        },
+                                    ),
+                                ],
+                                withBorder=True,
+                                p="xl",
+                                radius="md",
+                            ),
+                        ],
+                        gap="lg",
+                        py="xl",
+                    ),
+                    size="xl",
+                    px="xl",
+                ),
+            ),
+        ],
+        header={"height": 56},
+        padding=0,
+    ),
+)
 
-    with c2:
-        st.subheader("Jobs Map placeholder")
-        st.info("Additional visualizations can be added here (e.g., salary distribution).")
 
-    # --- Data Table ---
-    st.markdown("---")
-    st.subheader("Latest Job Offers")
+# ── Callback ─────────────────────────────────────────────────────────────────
+@callback(
+    Output("kpi-grid", "children"),
+    Output("time-chart", "data"),
+    Output("city-chart", "data"),
+    Output("experience-chart", "data"),
+    Output("experience-chart", "chartLabel"),
+    Output("experience-legend", "children"),
+    Output("remote-chart", "data"),
+    Output("remote-legend", "children"),
+    Output("jobs-table", "rowData"),
+    Input("city-filter", "value"),
+    Input("experience-filter", "value"),
+    Input("remote-filter", "value"),
+)
+def update(
+    selected_cities: list | None,
+    selected_exp: list | None,
+    selected_remote: list | None,
+):
+    flt = df.copy()
+    if selected_cities:
+        flt = flt[flt["city"].isin(selected_cities)]
+    if selected_exp:
+        flt = flt[flt["experience_level"].isin(selected_exp)]
+    if selected_remote:
+        flt = flt[flt["remote"].isin(selected_remote)]
 
-    # Reordering columns for better display
-    display_cols = [
-        "source",
-        "publication_date",
-        "title",
-        "company",
-        "city",
-        "region",
-        "salary",
-        "tjm",
-        "duration",
-        "experience_level",
-        "offer_url",
+    # ── KPIs ─────────────────────────────────────────────────────────────────
+    tjm_nums = flt["tjm"].dropna().astype(str).str.extract(r"(\d+)")[0].dropna().astype(float)
+    avg_tjm = f"{int(tjm_nums.mean())} €" if not tjm_nums.empty else "N/A"
+
+    kpis = [
+        dmc.GridCol(kpi_card(val, lbl), span=3)
+        for val, lbl in [
+            (f"{len(flt):,}", "Total Offers"),
+            (f"{flt['company'].nunique():,}", "Companies"),
+            (avg_tjm, "Avg TJM"),
+            (f"{flt['city'].nunique():,}", "Cities"),
+        ]
     ]
 
-    st.dataframe(
-        filtered_df[display_cols],
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "source": st.column_config.ImageColumn("source", help="Job Platform Icon"),
-            "offer_url": st.column_config.LinkColumn("offer_url", display_text="Open Offer"),
-            "city": st.column_config.TextColumn("city"),
-            "region": st.column_config.TextColumn("region"),
-        },
+    # ── Time series ──────────────────────────────────────────────────────────
+    ts = flt.copy()
+    ts["date"] = pd.to_datetime(ts["publication_date"], errors="coerce")
+    ts = ts.dropna(subset=["date"])
+    ts["month_ts"] = ts["date"].dt.to_period("M").dt.to_timestamp()
+    ts["tjm_num"] = ts["tjm"].astype(str).str.extract(r"(\d+)")[0].astype(float)
+
+    if not ts.empty:
+        monthly = (
+            ts.groupby("month_ts")
+            .agg(Offres=("title", "count"), tjm_num=("tjm_num", "mean"))
+            .reset_index()
+            .sort_values("month_ts")
+        )
+        monthly["month"] = monthly["month_ts"].dt.strftime("%b %Y")
+        monthly["TJM moyen (€)"] = monthly["tjm_num"].round(0).fillna(0).astype(int)
+        time_data = monthly[["month", "Offres", "TJM moyen (€)"]].to_dict("records")
+    else:
+        time_data = []
+
+    # ── Top cities ───────────────────────────────────────────────────────────
+    city_counts = flt["city"].value_counts().head(10).reset_index()
+    city_counts.columns = ["city", "count"]
+
+    # ── Experience level donut ────────────────────────────────────────────────
+    exp_counts = flt["experience_level"].dropna().value_counts().reset_index()
+    exp_counts.columns = ["name", "value"]
+    total_exp = int(exp_counts["value"].sum())
+
+    exp_data = [
+        {
+            "name": row["name"],
+            "value": int(row["value"]),
+            "color": EXP_COLORS[i % len(EXP_COLORS)],
+        }
+        for i, row in exp_counts.iterrows()
+    ]
+
+    # Custom legend: colored dot + name + percentage
+    exp_legend = (
+        [
+            dmc.Group(
+                [
+                    dmc.Box(
+                        style={
+                            "width": 8,
+                            "height": 8,
+                            "borderRadius": "50%",
+                            "backgroundColor": f"var(--mantine-color-{item['color'].replace('.', '-')})",
+                            "flexShrink": 0,
+                        }
+                    ),
+                    dmc.Text(item["name"], size="xs", c="dimmed", style={"flex": 1}),
+                    dmc.Text(
+                        f"{item['value'] / total_exp:.0%}" if total_exp else "—",
+                        size="xs",
+                        fw=500,
+                    ),
+                ],
+                gap="xs",
+                wrap="nowrap",
+            )
+            for item in exp_data
+        ]
+        if exp_data
+        else []
     )
 
-except Exception as e:
-    st.error(f"Error loading dashboard: {e}")
-    st.info("Make sure the database is running and dbt models are built.")
+    # DonutChart center label: dominant level
+    chart_label = exp_data[0]["name"] if exp_data else ""
+
+    # ── Remote distribution ──────────────────────────────────────────────────
+    remote_counts = flt["remote"].dropna().value_counts().reset_index()
+    remote_counts.columns = ["name", "value"]
+    total_remote = int(remote_counts["value"].sum())
+
+    remote_data = [
+        {
+            "name": row["name"],
+            "value": int(row["value"]),
+            "color": REMOTE_COLORS.get(row["name"], "gray.5"),
+        }
+        for _, row in remote_counts.iterrows()
+    ]
+
+    remote_legend = (
+        [
+            dmc.Group(
+                [
+                    dmc.Box(
+                        style={
+                            "width": 8,
+                            "height": 8,
+                            "borderRadius": "50%",
+                            "backgroundColor": f"var(--mantine-color-{item['color'].replace('.', '-')})",
+                            "flexShrink": 0,
+                        }
+                    ),
+                    dmc.Text(item["name"], size="xs", c="dimmed", style={"flex": 1}),
+                    dmc.Text(
+                        f"{item['value'] / total_remote:.0%}" if total_remote else "—",
+                        size="xs",
+                        fw=500,
+                    ),
+                ],
+                gap="xs",
+                wrap="nowrap",
+            )
+            for item in remote_data
+        ]
+        if remote_data
+        else []
+    )
+
+    # ── Table ────────────────────────────────────────────────────────────────
+    display = flt[
+        [
+            "source",
+            "publication_date",
+            "title",
+            "company",
+            "city",
+            "region",
+            "salary",
+            "tjm",
+            "duration",
+            "experience_level",
+            "offer_url",
+        ]
+    ].copy()
+    display["source"] = display["source"].apply(
+        lambda x: f"![icon]({x})" if pd.notna(x) and x else ""
+    )
+    display["offer_url"] = display["offer_url"].apply(
+        lambda x: f"[Open →]({x})" if pd.notna(x) and x else ""
+    )
+
+    return (
+        kpis,
+        time_data,
+        city_counts.to_dict("records"),
+        exp_data,
+        chart_label,
+        exp_legend,
+        remote_data,
+        remote_legend,
+        display.fillna("").to_dict("records"),
+    )
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

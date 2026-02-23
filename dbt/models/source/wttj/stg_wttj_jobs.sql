@@ -11,7 +11,7 @@ final as (
         -- Normalize Date
         {{ normalize_date('publication_date') }} as publication_date,
         -- Use explicit city/region from source
-        city,
+        {{ normalize_city('city') }} as city,
         region,
 
         location as raw_location,
@@ -26,7 +26,7 @@ final as (
         -- WTTJ rarely has TJM in the income field the way Freework does
         NULL as tjm,
         duration,
-        {{ normalize_experience('experience_level') }} as experience_level,
+        {{ categorize_experience(normalize_experience('experience_level')) }} as experience_level,
         start_date,
         -- MAPPING WTTJ REMOTE (RAW -> STANDARD)
         source,

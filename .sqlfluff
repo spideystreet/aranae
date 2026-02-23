@@ -13,6 +13,8 @@ normalize_date = "{% macro normalize_date(col) %}cast({{ col }} as date){% endma
 extract_income = "{% macro extract_income(col, type) %}NULL{% endmacro %}"
 format_wttj_salary = "{% macro format_wttj_salary(col) %}{{ col }}{% endmacro %}"
 normalize_experience = "{% macro normalize_experience(col) %}{{ col }}{% endmacro %}"
+normalize_city = "{% macro normalize_city(col) %}{{ col }}{% endmacro %}"
+categorize_experience = "{% macro categorize_experience(col) %}{{ col }}{% endmacro %}"
 
 [sqlfluff:indentation]
 indent_unit = space
