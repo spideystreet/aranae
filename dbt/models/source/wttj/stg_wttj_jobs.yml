@@ -7,18 +7,18 @@ models:
     columns:
       - name: job_id
         description: "Unique identifier for the job."
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: title
         description: "Job title."
-        tests:
+        data_tests:
           - not_null
       - name: company
         description: "Hiring company."
       - name: publication_date
         description: "Normalized publication date (YYYY-MM-DD)."
-        tests:
+        data_tests:
           - not_null
       - name: city
         description: "City extracted from source."
@@ -28,7 +28,7 @@ models:
         description: "Original location string."
       - name: url
         description: "URL to the job offer."
-        tests:
+        data_tests:
           - not_null
       - name: raw_income
         description: "Original income string from source."
@@ -38,18 +38,20 @@ models:
         description: "Extracted TJM (daily rate)."
       - name: remote
         description: "Normalized remote work type."
-        tests:
+        data_tests:
           - accepted_values:
-              values: ["Télétravail 100%", "Télétravail partiel", "Présentiel", "Pas d''infos"]
+              arguments:
+                values: ["Télétravail 100%", "Télétravail partiel", "Présentiel", "Pas d''infos"]
       - name: contracts
         description: "Normalized contract type."
       - name: source
         description: "Data source identifier."
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
-              values: ["wttj"]
+              arguments:
+                values: ["wttj"]
       - name: scraped_at
         description: "Timestamp when the job was scraped."
-        tests:
+        data_tests:
           - not_null

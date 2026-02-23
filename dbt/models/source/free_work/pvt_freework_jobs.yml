@@ -7,18 +7,18 @@ models:
     columns:
       - name: job_id
         description: "Unique identifier for the job."
-        tests:
+        data_tests:
           - unique
           - not_null
       - name: title
         description: "Job title."
-        tests:
+        data_tests:
           - not_null
       - name: company
         description: "Hiring company."
       - name: publication_date
         description: "Publication date."
-        tests:
+        data_tests:
           - not_null
       - name: city
         description: "City."
