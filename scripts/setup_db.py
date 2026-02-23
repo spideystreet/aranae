@@ -1,8 +1,8 @@
-import os
 import sys
+from pathlib import Path
 
 # Allow importing from services module
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from services.db import get_db_connection
 
