@@ -1,4 +1,4 @@
-from dagster import AssetExecutionContext, MaterializeResult, asset
+from dagster import AssetExecutionContext, AssetKey, MaterializeResult, asset
 
 from scrapers.config import FREEWORK_FILTERED_URL
 from scrapers.freework_scraper import fetch_jobs as fetch_freework_jobs
@@ -6,7 +6,11 @@ from scrapers.wttj_scraper import fetch_wttj_jobs
 from services.ingestor import ingest_jobs
 
 
-@asset(group_name="ingestion", compute_kind="python")
+@asset(
+    key=AssetKey(["free_work", "RAW_FREEWORK"]),
+    group_name="ingestion",
+    compute_kind="python",
+)
 def raw_freework_jobs(context: AssetExecutionContext) -> MaterializeResult:
     """Scrapes jobs from free-work.com (last 24h) and upserts into RAW_FREEWORK."""
     all_jobs = []
@@ -21,7 +25,11 @@ def raw_freework_jobs(context: AssetExecutionContext) -> MaterializeResult:
     return MaterializeResult(metadata={"num_jobs": len(all_jobs)})
 
 
-@asset(group_name="ingestion", compute_kind="python")
+@asset(
+    key=AssetKey(["wttj", "RAW_WTTJ"]),
+    group_name="ingestion",
+    compute_kind="python",
+)
 def raw_wttj_jobs(context: AssetExecutionContext) -> MaterializeResult:
     """Scrapes jobs from Welcome to the Jungle (last 24h) and upserts into RAW_WTTJ."""
     jobs = fetch_wttj_jobs(pages=3)

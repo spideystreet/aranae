@@ -1,4 +1,4 @@
-from dagster import Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
+from dagster import AssetSelection, Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
 
 from dagster_app.assets import dbt, ingestion
 from dagster_app.resources import dbt_resource
@@ -6,11 +6,16 @@ from dagster_app.resources import dbt_resource
 dbt_assets = load_assets_from_modules([dbt])
 ingestion_assets = load_assets_from_modules([ingestion])
 
-ingestion_job = define_asset_job(name="daily_ingestion_job", selection=ingestion_assets)
+# One job: ingestion → dbt transformations (Dagster respects the dependency graph)
+daily_pipeline_job = define_asset_job(
+    name="daily_pipeline_job",
+    selection=AssetSelection.all(),
+)
 
+# 6h00 Paris (UTC+1 winter) = 05:00 UTC
 daily_schedule = ScheduleDefinition(
-    job=ingestion_job,
-    cron_schedule="0 0 * * *",
+    job=daily_pipeline_job,
+    cron_schedule="0 5 * * *",
 )
 
 defs = Definitions(
