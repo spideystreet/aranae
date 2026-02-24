@@ -228,7 +228,9 @@ def fetch_wttj_jobs(pages: int = 1) -> list[dict]:
                         ).total_seconds() / 3600
 
                         if hours_diff > 24:
-                            print(f"Stopping: {job_id} is {hours_diff:.1f}h old (sorted by mostRecent)")
+                            print(
+                                f"Stopping: {job_id} is {hours_diff:.1f}h old (sorted by mostRecent)"
+                            )
                             stop_scraping = True
                             break
                         else:
