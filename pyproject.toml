@@ -40,6 +40,9 @@ packages = ["scrapers", "dagster_app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.dagster]
+module_name = "dagster_app.definitions"
+
 [tool.ruff]
 target-version = "py313"
 line-length = 100

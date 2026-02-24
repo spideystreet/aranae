@@ -228,13 +228,11 @@ def fetch_wttj_jobs(pages: int = 1) -> list[dict]:
                         ).total_seconds() / 3600
 
                         if hours_diff > 24:
-                            print(f"Skipping {job_id}: {hours_diff:.1f}h old")
-                            # If we are on page 1 and find something old, we don't necessarily stop
-                            # because sorting can be slightly off, but usually we stop if many are old.
-                            # For simplicity, if > 24h we skip.
-                            continue
+                            print(f"Stopping: {job_id} is {hours_diff:.1f}h old (sorted by mostRecent)")
+                            stop_scraping = True
+                            break
                         else:
-                            print(f"Job {job_id} is {hours_diff:.1f}h old - INVESTIGATING...")
+                            print(f"Job {job_id} is {hours_diff:.1f}h old - OK")
 
                     details = fetch_wttj_details(full_url)
 
