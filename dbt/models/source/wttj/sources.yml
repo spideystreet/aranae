@@ -2,7 +2,6 @@ version: 2
 
 sources:
   - name: wttj
-    database: "{{ env_var('POSTGRES_DB') }}"
-    schema: "{{ env_var('DBT_RAW_SCHEMA', 'source') }}"
+    schema: "{{ env_var('DBT_RAW_SCHEMA') }}"
     tables:
       - name: RAW_WTTJ

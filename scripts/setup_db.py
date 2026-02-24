@@ -1,11 +1,15 @@
+import os
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+from dotenv import load_dotenv
+
 from services.db import get_db_connection
 
-RAW_SCHEMA = "source"
+load_dotenv()
+RAW_SCHEMA = os.environ["DBT_RAW_SCHEMA"]
 
 
 def create_tables():

@@ -1,8 +1,7 @@
-
 version: 2
 
 sources:
   - name: free_work
-    schema: "{{ env_var('DBT_RAW_SCHEMA', 'source') }}"
+    schema: "{{ env_var('DBT_RAW_SCHEMA') }}"
     tables:
       - name: RAW_FREEWORK
