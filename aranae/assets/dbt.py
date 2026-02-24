@@ -1,7 +1,7 @@
 from dagster import AssetExecutionContext
 from dagster_dbt import DbtCliResource, dbt_assets
 
-from dagster_app.constants import DBT_PROJECT
+from aranae.constants import DBT_PROJECT
 
 
 @dbt_assets(manifest=DBT_PROJECT.manifest_path)

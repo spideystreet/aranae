@@ -1,9 +1,9 @@
 with freework as (
-    select * from {{ ref('pvt_freework_jobs') }}
+    select * from {{ ref('int_freework__jobs') }}
 ),
 
 wttj as (
-    select * from {{ ref('pvt_wttj_jobs') }}
+    select * from {{ ref('int_wttj__jobs') }}
 ),
 
 unioned as (
@@ -13,3 +13,4 @@ unioned as (
 )
 
 select * from unioned
+order by publication_date desc

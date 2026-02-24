@@ -55,7 +55,7 @@ services/
   transformers.py   Source-specific data cleaning before ingestion
 models/
   schemas.py        JobSchema (Pydantic) — source of truth for all job fields
-dagster_app/
+aranae/
   assets/ingestion.py   Dagster assets that call scrapers → return DataFrames
   assets/dbt.py         Dagster asset that runs dbt build
   definitions.py        Wires assets, resources, and daily schedule

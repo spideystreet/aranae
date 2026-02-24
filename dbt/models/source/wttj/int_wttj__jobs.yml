@@ -2,8 +2,8 @@
 version: 2
 
 models:
-  - name: pvt_wttj_jobs
-    description: "Pivot (Mart) model for Welcome to the Jungle jobs. Ready for analytics."
+  - name: int_wttj__jobs
+    description: "Intermediate model for Welcome to the Jungle jobs. Ready for analytics."
     columns:
       - name: job_id
         description: "Unique identifier for the job."

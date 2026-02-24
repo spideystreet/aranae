@@ -210,8 +210,9 @@ __marimo__/
 # MCP config (contains credentials)
 .mcp.json
 
-# Scripts
-scripts/
+# Scripts (ignore all except tracked init scripts)
+scripts/*
+!scripts/setup_db.py
 
 # Temp
 .streamlit/

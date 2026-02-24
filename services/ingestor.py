@@ -36,7 +36,7 @@ def ingest_jobs(jobs: list[dict], table_name: str = "raw_jobs"):
             # Prepare the insert query with ON CONFLICT to avoid duplicates
             # Using the unified table structure with (source, job_id) unique constraint
             insert_query = f"""
-                INSERT INTO "{table_name}" (
+                INSERT INTO "source"."{table_name}" (
                     job_id, title, company, publication_date, location, city, region,
                     income, skills, contracts, start_date, url, source, description, duration, experience_level, remote, scraped_at
                 ) VALUES (

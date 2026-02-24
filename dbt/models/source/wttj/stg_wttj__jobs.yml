@@ -2,7 +2,7 @@
 version: 2
 
 models:
-  - name: stg_wttj_jobs
+  - name: stg_wttj__jobs
     description: "Staging model for Welcome to the Jungle jobs. Performs data cleaning, date normalization, and contract mapping."
     columns:
       - name: job_id
