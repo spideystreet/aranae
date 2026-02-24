@@ -25,6 +25,7 @@ dependencies = [
     "psycopg2-binary",
     "sqlalchemy",
     "streamlit",
+    "playwright",
 ]
 
 [dependency-groups]

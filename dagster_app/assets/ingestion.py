@@ -1,52 +1,30 @@
-import pandas as pd
-from dagster import asset
-from scrapers.freework import CUSTOM_URL, fetch_jobs
+from dagster import AssetExecutionContext, MaterializeResult, asset
+
+from scrapers.config import FREEWORK_FILTERED_URL
+from scrapers.freework_scraper import fetch_jobs as fetch_freework_jobs
+from scrapers.wttj_scraper import fetch_wttj_jobs
+from services.ingestor import ingest_jobs
 
 
 @asset(group_name="ingestion", compute_kind="python")
-def raw_freework_jobs() -> pd.DataFrame:
-    """
-    Scrapes jobs from free-work.com using the custom 24h filter filter.
-    Returns a DataFrame.
-    """
+def raw_freework_jobs(context: AssetExecutionContext) -> MaterializeResult:
+    """Scrapes jobs from free-work.com (last 24h) and upserts into RAW_FREEWORK."""
     all_jobs = []
-    # Fetch first 3 pages (should cover 24h usually, or iterate until empty)
-    # The user wants "every 24h", so we can assume we run this daily.
-    # We fetch a few pages to be sure.
     for page in range(1, 4):
-        jobs = fetch_jobs(page=page, url=CUSTOM_URL)
+        jobs = fetch_freework_jobs(page=page, url=FREEWORK_FILTERED_URL)
         if not jobs:
             break
         all_jobs.extend(jobs)
 
-    df = pd.DataFrame(all_jobs)
+    ingest_jobs(all_jobs, table_name="RAW_FREEWORK")
+    context.log.info(f"Ingested {len(all_jobs)} freework jobs")
+    return MaterializeResult(metadata={"num_jobs": len(all_jobs)})
 
-    # Ensure columns exist even if empty
-    expected_cols = [
-        "job_id",
-        "title",
-        "company",
-        "publication_date",
-        "contracts",
-        "skills",
-        "duration",
-        "experience_level",
-        "income",
-        "location",
-        "description",
-        "start_date",
-        "url",
-        "source",
-    ]
 
-    for col in expected_cols:
-        if col not in df.columns:
-            df[col] = None
-
-    df["contracts"] = df["contracts"].apply(lambda x: ", ".join(x) if isinstance(x, list) else x)
-    df["skills"] = df["skills"].apply(lambda x: ", ".join(x) if isinstance(x, list) else x)
-
-    # Add ingestion timestamp
-    df["scraped_at"] = pd.Timestamp.now()
-
-    return df
+@asset(group_name="ingestion", compute_kind="python")
+def raw_wttj_jobs(context: AssetExecutionContext) -> MaterializeResult:
+    """Scrapes jobs from Welcome to the Jungle (last 24h) and upserts into RAW_WTTJ."""
+    jobs = fetch_wttj_jobs(pages=3)
+    ingest_jobs(jobs, table_name="RAW_WTTJ")
+    context.log.info(f"Ingested {len(jobs)} WTTJ jobs")
+    return MaterializeResult(metadata={"num_jobs": len(jobs)})
