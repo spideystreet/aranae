@@ -2,7 +2,7 @@
 version: 2
 
 models:
-  - name: stg_freework_jobs
+  - name: stg_freework__jobs
     description: "Staging model for Free-Work jobs. Performs data cleaning, date normalization, and deduplication."
     columns:
       - name: job_id

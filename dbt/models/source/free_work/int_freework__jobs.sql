@@ -17,5 +17,5 @@ select
     remote,
     source,
     scraped_at
-from {{ ref('stg_freework_jobs') }}
+from {{ ref('stg_freework__jobs') }}
 order by publication_date desc

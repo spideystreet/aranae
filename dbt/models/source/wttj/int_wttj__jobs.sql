@@ -1,5 +1,5 @@
 with stg as (
-    select * from {{ ref('stg_wttj_jobs') }}
+    select * from {{ ref('stg_wttj__jobs') }}
 )
 
 select

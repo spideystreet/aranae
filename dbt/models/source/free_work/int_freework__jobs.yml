@@ -2,8 +2,8 @@
 version: 2
 
 models:
-  - name: pvt_freework_jobs
-    description: "Pivot (Mart) model for Free-Work jobs. Ready for analytics."
+  - name: int_freework__jobs
+    description: "Intermediate model for Free-Work jobs. Ready for analytics."
     columns:
       - name: job_id
         description: "Unique identifier for the job."
