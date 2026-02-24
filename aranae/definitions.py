@@ -1,7 +1,7 @@
 from dagster import AssetSelection, DefaultScheduleStatus, Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
 
-from dagster_app.assets import dbt, ingestion
-from dagster_app.resources import dbt_resource
+from aranae.assets import dbt, ingestion
+from aranae.resources import dbt_resource
 
 dbt_assets = load_assets_from_modules([dbt])
 ingestion_assets = load_assets_from_modules([ingestion])

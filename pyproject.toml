@@ -35,13 +35,13 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["scrapers", "dagster_app"]
+packages = ["scrapers", "aranae"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.dagster]
-module_name = "dagster_app.definitions"
+module_name = "aranae.definitions"
 
 [tool.ruff]
 target-version = "py313"
