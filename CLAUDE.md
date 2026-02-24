@@ -11,8 +11,11 @@ Stack: Python 3.13, PostgreSQL (port 5434), dbt-core, Dagster, Pydantic, Streaml
 ## Commands
 
 ```bash
+# Install dependencies (first time or after pyproject.toml changes)
+uv sync --dev
+
 # Activate environment
-source venv/bin/activate
+source .venv/bin/activate
 
 # Start database
 docker compose up -d
