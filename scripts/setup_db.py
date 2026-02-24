@@ -1,21 +1,24 @@
 import sys
 from pathlib import Path
 
-# Allow importing from services module
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from services.db import get_db_connection
+
+RAW_SCHEMA = "source"
 
 
 def create_tables():
     conn = get_db_connection()
     try:
         with conn.cursor() as cur:
+            cur.execute(f'CREATE SCHEMA IF NOT EXISTS "{RAW_SCHEMA}";')
+
             tables = ["RAW_FREEWORK", "RAW_WTTJ"]
             for table in tables:
-                print(f"Creating table {table} if not exists...")
-                create_query = f"""
-                CREATE TABLE IF NOT EXISTS "{table}" (
+                print(f"Creating table {RAW_SCHEMA}.{table} if not exists...")
+                cur.execute(f"""
+                CREATE TABLE IF NOT EXISTS "{RAW_SCHEMA}"."{table}" (
                     id SERIAL PRIMARY KEY,
                     job_id VARCHAR(255) NOT NULL,
                     source VARCHAR(50) NOT NULL,
@@ -37,9 +40,8 @@ def create_tables():
                     scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     CONSTRAINT "unique_{table}_job" UNIQUE (source, job_id)
                 );
-                """
-                cur.execute(create_query)
-                print(f"Table {table} created/verified.")
+                """)
+                print(f"Table {RAW_SCHEMA}.{table} created/verified.")
 
         conn.commit()
         print("Database initialized successfully.")

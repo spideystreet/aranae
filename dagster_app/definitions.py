@@ -1,4 +1,4 @@
-from dagster import AssetSelection, Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
+from dagster import AssetSelection, DefaultScheduleStatus, Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
 
 from dagster_app.assets import dbt, ingestion
 from dagster_app.resources import dbt_resource
@@ -16,6 +16,7 @@ daily_pipeline_job = define_asset_job(
 daily_schedule = ScheduleDefinition(
     job=daily_pipeline_job,
     cron_schedule="0 5 * * *",
+    default_status=DefaultScheduleStatus.RUNNING,
 )
 
 defs = Definitions(

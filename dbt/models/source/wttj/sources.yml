@@ -3,6 +3,6 @@ version: 2
 sources:
   - name: wttj
     database: "{{ env_var('POSTGRES_DB') }}"
-    schema: public
+    schema: source
     tables:
       - name: RAW_WTTJ

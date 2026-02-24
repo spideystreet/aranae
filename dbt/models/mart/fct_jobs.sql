@@ -13,3 +13,4 @@ unioned as (
 )
 
 select * from unioned
+order by publication_date desc
