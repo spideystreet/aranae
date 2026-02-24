@@ -99,3 +99,4 @@ jobs:
         run: dbt parse --project-dir dbt --profiles-dir /tmp/dbt-ci
         env:
           POSTGRES_DB: ci
+          DBT_RAW_SCHEMA: source

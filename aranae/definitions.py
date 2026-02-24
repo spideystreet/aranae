@@ -1,4 +1,11 @@
-from dagster import AssetSelection, DefaultScheduleStatus, Definitions, ScheduleDefinition, define_asset_job, load_assets_from_modules
+from dagster import (
+    AssetSelection,
+    DefaultScheduleStatus,
+    Definitions,
+    ScheduleDefinition,
+    define_asset_job,
+    load_assets_from_modules,
+)
 
 from aranae.assets import dbt, ingestion
 from aranae.resources import dbt_resource
